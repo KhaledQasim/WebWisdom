@@ -21,7 +21,6 @@ todos = [
 ]
 
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -38,9 +37,15 @@ async def read_root() -> dict:
 
 @app.get("/todo", tags=["todos"])
 async def get_todos() -> dict:
-    return { "data": todos }
+    return {"data": todos}
 
 
-@app.get("/online",tags=["online"])
-async def get_online() -> dict:
-    return {"data": isHTTPS.isOnline("mail.qasimfiles.uk")}
+# @app.get("/online", tags=["online"])
+# async def get_online() -> dict:
+#     return {"data": isHTTPS.isOnline("mail.qasimfiles.uk")}
+
+
+@app.post("/online")
+def getOnline(domain: dict):
+  
+    return {"data": isHTTPS.CheckOnlineAndHttp(domain["data"])}
