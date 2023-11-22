@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+import webwisdom_poetry.isHTTPS as isHTTPS
 
 app = FastAPI()
 
@@ -39,3 +39,8 @@ async def read_root() -> dict:
 @app.get("/todo", tags=["todos"])
 async def get_todos() -> dict:
     return { "data": todos }
+
+
+@app.get("/online",tags=["online"])
+async def get_online() -> dict:
+    return {"data": isHTTPS.isOnline("mail.qasimfiles.uk")}
