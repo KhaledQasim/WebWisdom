@@ -146,7 +146,7 @@ async def register_new_user(
   
     content = {"message": "Account Created Successfully"}
     response = JSONResponse(content=content)
-    response.set_cookie(key="jwt_token", value=access_token, expires=(int(Config.ACCESS_TOKEN_EXPIRE_MINUTES)*60) , secure=True , httponly=True, samesite="strict")
+    response.set_cookie(key="jwt_token", value=access_token, expires=(int(Config.ACCESS_TOKEN_EXPIRE_MINUTES)*60) , secure=True , httponly=True, samesite="lax")
     return response
     
 
@@ -170,7 +170,7 @@ async def login_for_access_token(
     # return Token(access_token=access_token, token_type="bearer")
     content = {"message": "Login Successful"}
     response = JSONResponse(content=content)
-    response.set_cookie(key="jwt_token", value=access_token, expires=(int(Config.ACCESS_TOKEN_EXPIRE_MINUTES)*60) , secure=True , httponly=True, samesite="strict")
+    response.set_cookie(key="jwt_token", value=access_token, expires=(int(Config.ACCESS_TOKEN_EXPIRE_MINUTES)*60) , secure=True , httponly=True, samesite="lax")
     return response
 
 
@@ -198,7 +198,7 @@ async def read_users_me(
 async def logout():
     content = {"message": "Logout Successful"}
     response = JSONResponse(content=content)
-    response.set_cookie(key="jwt_token", value="", expires=(int(Config.ACCESS_TOKEN_EXPIRE_MINUTES)*60) , secure=True , httponly=True, samesite="strict")
+    response.set_cookie(key="jwt_token", value="", expires=(int(Config.ACCESS_TOKEN_EXPIRE_MINUTES)*60) , secure=True , httponly=True, samesite="lax")
     return response 
 
        

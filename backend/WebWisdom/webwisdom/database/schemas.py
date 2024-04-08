@@ -4,6 +4,7 @@ from enum import Enum
 from datetime import date
 from pydantic.functional_validators import AfterValidator
 from fastapi import Query
+from urllib.parse import urlparse
 
 from pydantic import (
     Json,
@@ -12,7 +13,9 @@ from pydantic import (
     ValidationInfo,
     field_validator,
     EmailStr, 
-    Field
+    Field,
+    HttpUrl,
+    
 )
 
 import re
@@ -65,3 +68,11 @@ class User(UserBase):
 
 class UserInDB(User):
     hashed_password: str
+
+
+
+
+
+class URL(BaseModel):
+    url: HttpUrl
+ 

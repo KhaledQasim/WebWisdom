@@ -20,3 +20,8 @@ export const axiosRegister = axios.create({
     baseURL: String(backendURL+"/auth/register"),
     withCredentials: true
 })
+
+export const axiosStartScan = axios.create({
+    baseURL: String(backendURL+"/api/start-scan"),
+    withCredentials: true
+})
