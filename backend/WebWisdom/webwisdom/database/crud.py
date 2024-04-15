@@ -18,9 +18,20 @@ def create_user(db: Session, userModel: models.Users):
     db.refresh(userModel)
 
 
+def create_user_test_result(db: Session, result: schemas.Result, user_id: int):
+    db_item = models.Results(result=result, user_id=user_id)
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
 
 
-
+def get_results_by_id_of_user(db: Session, user_id: int):
+    skip = 0
+    limit = 100
+    return db.query(models.Results).filter(models.Results.user_id == user_id).offset(skip).limit(limit).all()
 
 # def get_items(db: Session, skip: int = 0, limit: int = 100):
 #     return db.query(models.Form).offset(skip).limit(limit).all()
+
+
+# **result.model_dump()

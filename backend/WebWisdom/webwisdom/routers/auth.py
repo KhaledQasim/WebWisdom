@@ -92,7 +92,7 @@ async def get_current_user(db : db_dependancy ,jwt_token: Annotated[str , Cookie
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        
+       
         payload = jwt.decode(jwt_token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
@@ -214,3 +214,27 @@ async def logout():
 #     jwt: Annotated[str , Cookie() ] 
 # ):
 #     return {"jwt":jwt}
+
+
+@router.post("/create_test_result")
+async def create_test_result(result: schemas.ResultCreate, user: Annotated[schemas.User, Depends(get_current_active_user)],db: Session = Depends(get_db)):
+    try:
+       
+        crud.create_user_test_result(db=db, result=result, user_id=user.id)
+        return {"message": "Result saved successfully"}
+    except Exception as e:
+        print("Error in create_test_result ",e)
+        raise HTTPException(status_code=401,detail="Unauthorized")
+    
+    
+@router.get("/get-all-results")
+async def get_all_results(user: Annotated[schemas.User, Depends(get_current_active_user)],db: Session = Depends(get_db)):
+    try:
+        
+        results = crud.get_results_by_id_of_user(
+            db=db, user_id=user.id)
+        return results
+    
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=401, detail="Unauthorized")   

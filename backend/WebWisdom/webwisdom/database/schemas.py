@@ -63,7 +63,7 @@ class User(UserBase):
     class ConfigDict:
         # orm_mode is now deprecated in favor of from_attributes
         # orm_mode = True
-        from_attributes = True
+        result_attributes = True
 
 
 class UserInDB(User):
@@ -75,4 +75,19 @@ class UserInDB(User):
 
 class URL(BaseModel):
     url: HttpUrl
- 
+
+
+
+class Result(BaseModel):
+    result: str
+    
+class ResultCreate(Result):
+    pass
+
+
+class Result(Result):
+    id: int
+    user_id: int
+
+    class ConfigDict:
+        result_attributes = True

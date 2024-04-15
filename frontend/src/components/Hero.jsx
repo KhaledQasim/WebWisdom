@@ -1,42 +1,59 @@
 import { signal } from "@preact/signals-react";
-import { useSignals } from "@preact/signals-react/runtime";
+import { useSignals, useSignalEffect } from "@preact/signals-react/runtime";
 import { useNavigate } from "react-router-dom";
 import { axiosStartScan } from "../api/axios";
 
+
 const url = signal("");
 const disabled = signal(false);
-const isLoading = signal(false)
+const isLoading = signal(false);
+const errorMessage = signal("");
 
 export default function Hero() {
   useSignals();
 
-  // const navigate = useNavigate();
+  //the user can not close or refresh the browser when the api call is active
+  useSignalEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    if (disabled.value) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    } else {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    }
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  });
+  const navigate = useNavigate();
 
   function ScanDomain() {
     disabled.value = true;
     isLoading.value = true;
+    errorMessage.value = "";
     axiosStartScan
       .post("", {
         url: "https://" + url.value,
       })
       .then(function response(response) {
-        if (response.status === 200) {
-          console.log(response.data.data);
+        disabled.value = false;
+        isLoading.value = false;
+
+        if (response.data.error) {
+          errorMessage.value = String(response.data.error);
+        } else {
+          localStorage.setItem('resultData', JSON.stringify(response.data));
+          navigate("/result")
         }
-
-        setTimeout(() => {
-          disabled.value = false;
-          isLoading.value = false;
-
-        }, 2000);
       })
       .catch(function error(error) {
+        disabled.value = false;
+        isLoading.value = false;
         console.error(error);
-        setTimeout(() => {
-          disabled.value = false;
-          isLoading.value = false;
-
-        }, 2000);
       });
   }
 
@@ -49,10 +66,8 @@ export default function Hero() {
     <>
       {isLoading.value ? (
         <div className="w-full flex justify-center">
-          <div className="loading loading-ring text-primary w-[40%]">
-          </div>
+          <div className="loading loading-ring text-primary w-[40%]"></div>
         </div>
-        
       ) : (
         <section className="w-full py-6 sm:py-12 md:py-24 lg:py-32 xl:py-48 flex justify-center">
           <div className="container px-4 md:px-6 flex flex-col items-center justify-center space-y-4 text-center">
@@ -61,8 +76,9 @@ export default function Hero() {
                 Secure your website with a single click
               </h1>
               <p className="mx-auto max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
-                Enter your website URL to scan for security vulnerabilities. Get
-                real-time threat alerts and comprehensive reports.
+                Enter your website URL to scan for security vulnerabilities.
+                Understand which components of your site might be exploited by
+                threat actors.
               </p>
             </div>
             <div className="mx-auto w-full max-w-sm space-y-2">
@@ -89,8 +105,30 @@ export default function Hero() {
                 </button>
               </form>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Example domains: example.com, test.org, demo.net
+                Please only enter the hostname e.g: google.com youtube.com
               </p>
+              {errorMessage.value ? (
+                <>
+                  <div role="alert" className="alert alert-error">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="stroke-current shrink-0 h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span>Error! {errorMessage.value} </span>
+                  </div>
+                </>
+              ) : (
+                <></>
+              )}
             </div>
           </div>
         </section>
