@@ -21,7 +21,9 @@ class check_site_state:
             results={
                 "port_80":False,
                 "port_443":False,
-                "message":""
+                "message":"",
+                "url":str(self.site),
+                "ssl":False
             }
               
             # Getting the A records for the site
@@ -64,6 +66,7 @@ class check_site_state:
                     print(f"{self.site} (IP: {ip}) is online on port 443 with SSL!")
                     online = True
                     results["port_443"] = True
+                    results["ssl"]= True
                     
                   
 

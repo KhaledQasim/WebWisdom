@@ -11,6 +11,8 @@ from typing import Annotated
 from ..routers import auth
 from sqlalchemy.orm import Session
 import json
+from .logic import nmap
+
 
 router = APIRouter(
     prefix="/api",
@@ -37,6 +39,13 @@ async def Test_parse(db: Session = Depends(auth.get_db)):
     }
  
 
+@router.get("/test-nmap")
+def test_nmap():
+    nmap_object = nmap.nmap("https://yousefqasim.uk/")
+    nmap_scan_result = nmap_object.nmap_scan()
+    return {"nmap":nmap_scan_result}
+
+
 
 @router.post("/start-scan")
 async def Start_scan(User_provided_url: schemas.URL, user: Annotated[schemas.User, Depends(auth.get_current_active_user)],db: Session = Depends(auth.get_db)):
@@ -56,12 +65,12 @@ async def Start_scan(User_provided_url: schemas.URL, user: Annotated[schemas.Use
         print(result_check_site["port_80"],result_check_site["port_443"])
         
         if(result_check_site["port_80"]==False and result_check_site["port_443"] == False):
-            return {"error":"Site is down or does not exist please check the url and that the site is accessible and running!"}
+            raise HTTPException(status_code=405,detail="Site is down or does not exist please check the url and that the site is accessible and running!") 
         data = data_parse.formate_report(User_provided_url.url)
 
         result = {
             "connection_and_records": result_check_site,
-            "data": data    
+            "data": data   
         }
 
         auth.crud.create_user_test_result(db=db, result=json.dumps(result), user_id=user_info.id)

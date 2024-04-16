@@ -1,26 +1,24 @@
 import subprocess
 from fastapi import FastAPI, HTTPException
-
+from . import nmap
 import re
 
 
 
 
 
+
 def get_vulnerability_report(url):
-    
 
     command = f'ptt -q --nocolor run website_scanner {url}'
 
-
-    result = subprocess.run(command, capture_output=True, text=True, shell=True)
+    result = subprocess.run(
+        command, capture_output=True, text=True, shell=True)
     print(result.stdout)
     return result.stdout
 
 
-
-
-def parse_vulnerability_report_for_technologies(report_text:str):
+def parse_vulnerability_report_for_technologies(report_text: str):
     lines = report_text.split('\n')
     in_technology_section = False
     technologies = []
@@ -28,18 +26,17 @@ def parse_vulnerability_report_for_technologies(report_text:str):
 
     while i < len(lines):
         line = lines[i].strip()
-        
+
         if 'Server software and technology found' in line:
             in_technology_section = True
             i += 1
             continue
-        
-      
+
         if in_technology_section and line.startswith('['):
 
             # Exiting the loop if reached the next section
             break
-        
+
         if in_technology_section and '- Evidence' in line:
             technology = {}
             while True:
@@ -63,20 +60,17 @@ def parse_vulnerability_report_for_technologies(report_text:str):
                     break
 
             technologies.append(technology)
-            
+
             continue  # Skip the increment at the end of the loop since we've already moved to the next line
-        
+
         i += 1  # Move to the next line
-        
+
     # Removing any empty dictionaries at the end of the list
     technologies = [technology for technology in technologies if technology]
     return technologies
 
 
-
-
-
-def parse_vulnerability_report_for_headers(report_text:str):
+def parse_vulnerability_report_for_headers(report_text: str):
     # Define the pattern to capture required fields
     pattern = r"Missing security header: (\S.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?Vulnerability Details:\s*(?:- Evidence \d+:\s*\n\s*- URL: (.*?)\n\s*- Evidence: (.*?)\n)?\s*- Description: (.*?)\n\s*- Recommendation: (.*?)\n"
     results = []
@@ -90,14 +84,12 @@ def parse_vulnerability_report_for_headers(report_text:str):
             "Description": description.strip(),
             "Recommendation": recommendation.strip(),
             "Evidence": {
-                    "URL": url.strip() if url else "No URL provided",
-                    "EvidenceDetail": evidence.strip() if evidence else "No evidence detail provided"
+                "URL": url.strip() if url else "No URL provided",
+                "EvidenceDetail": evidence.strip() if evidence else "No evidence detail provided"
             }
         }
         results.append(result)
-    
-    
-    
+
     pattern = r"Unsafe security header: (\S.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?Vulnerability Details:\s*(?:- Evidence \d+:\s*\n\s*- URL: (.*?)\n\s*- Evidence: (.*?)\n)?\s*- Description: (.*?)\n\s*- Recommendation: (.*?)\n"
     matches = re.finditer(pattern, report_text, re.DOTALL)
 
@@ -109,31 +101,28 @@ def parse_vulnerability_report_for_headers(report_text:str):
             "Description": description.strip(),
             "Recommendation": recommendation.strip(),
             "Evidence": {
-                    "URL": url.strip() if url else "No URL provided",
-                    "EvidenceDetail": evidence.strip() if evidence else "No evidence detail provided"
+                "URL": url.strip() if url else "No URL provided",
+                "EvidenceDetail": evidence.strip() if evidence else "No evidence detail provided"
             }
         }
         results.append(result)
-    
-    
-    
-    
+
     # Parsing the provided text
     if not report_text.strip():
         raise HTTPException(status_code=400, detail="No text provided")
-    
+
     return results
 
 
-
-def parse_vulnerability_report_for_txt_files(report_text:str):
+def parse_vulnerability_report_for_txt_files(report_text: str):
     security_txt_pattern = r"Security\.txt file.*?\n\s*- Risk Level:\s*(\d+ \(\w+\))\n.*?Description:\s*(.*?)\n\s*- Recommendation:\s*(.*?)\n"
     robots_txt_pattern = r"Robots\.txt file.*?\n\s*- Risk Level:\s*(\d+ \(\w+\))\n.*?Description:\s*(.*?)\n\s*- Recommendation:\s*(.*?)\n"
-    
+
     results = []
 
     # Search for Security.txt file details
-    security_txt_match = re.search(security_txt_pattern, report_text, re.DOTALL)
+    security_txt_match = re.search(
+        security_txt_pattern, report_text, re.DOTALL)
     if security_txt_match:
         risk_level, description, recommendation = security_txt_match.groups()
         results.append({
@@ -157,16 +146,16 @@ def parse_vulnerability_report_for_txt_files(report_text:str):
     return results
 
 
-def parse_vulnerability_report_for_insecure_cookie(report_text:str):
+def parse_vulnerability_report_for_insecure_cookie(report_text: str):
     pattern = (
-            r"cookie\s*(.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?"
-            r"Vulnerability Details:\s*(?:- Evidence \d+:\s*\n"
-            r"\s*- URL: (.*?)\n"
-            r"\s*- Cookie Name: (.*?)\n"  # Capturing cookie name
-            r"\s*- Evidence: (.*?)\n)?"
-            r"\s*- Description: (.*?)\n"
-            r"\s*- Recommendation: (.*?)\n"
-        )
+        r"cookie\s*(.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?"
+        r"Vulnerability Details:\s*(?:- Evidence \d+:\s*\n"
+        r"\s*- URL: (.*?)\n"
+        r"\s*- Cookie Name: (.*?)\n"  # Capturing cookie name
+        r"\s*- Evidence: (.*?)\n)?"
+        r"\s*- Description: (.*?)\n"
+        r"\s*- Recommendation: (.*?)\n"
+    )
 
     results = []
     matches = re.finditer(pattern, report_text, re.DOTALL | re.IGNORECASE)
@@ -189,15 +178,52 @@ def parse_vulnerability_report_for_insecure_cookie(report_text:str):
     return results
 
 
+def parse_server_side_vulnerabilities(report_text: str):
+    vulnerabilities = []
+
+    # Start extracting from the specific section title
+    # Using a lookahead to ensure we don't skip over any part of the text that includes CVEs
+    vulnerability_section_start = re.search(r"Vulnerabilities found for server-side software\s*-\s*Risk Level: \d+ \((\w+)\)", report_text)
+    if vulnerability_section_start:
+        risk_level = vulnerability_section_start.group(1)
+        # Start capturing after "Vulnerability Details:"
+        vulnerability_details_section = report_text[vulnerability_section_start.end():]
+        vulnerability_details_start = vulnerability_details_section.find("Vulnerability Details:")
+        vulnerability_details_text = vulnerability_details_section[vulnerability_details_start:]
+
+        # Splitting by "Description:" or end of section to avoid reading into unrelated areas
+        vulnerability_details_text = vulnerability_details_text.split("Description:")[0]
+
+        # Regular expression to capture each CVE detail
+        cve_pattern = re.compile(r"- (CVE-\d+-\d+):\s*?\n\s*?-\s*?Risk Level:.*?\n\s*?-\s*?CVSS: (\d+\.\d+)\n\s*?-\s*?Summary: (.*?)\n\s*?-\s*?Affected software: (drupal 9)", re.DOTALL)
+        
+        matches = cve_pattern.finditer(vulnerability_details_text)
+        for match in matches:
+            cve_id, cvss, summary, affected_software = match.groups()
+            vulnerabilities.append({
+                "id": cve_id,
+                "CVSS": float(cvss),
+                "summary": summary.strip(),
+                "affected_software": affected_software
+            })
+
+    return {
+        "title": "Vulnerabilities found for server-side software",
+        "risk_level": risk_level,
+        "cve_list": vulnerabilities
+    }
+
 def formate_report(url):
-    print("urlhere",url)
+    print("urlhere", url)
     report_text = get_vulnerability_report(url)
     technologies = parse_vulnerability_report_for_technologies(report_text)
     headers = parse_vulnerability_report_for_headers(report_text)
     files = parse_vulnerability_report_for_txt_files(report_text)
     cookies = parse_vulnerability_report_for_insecure_cookie(report_text)
-    return [{"technologies":technologies},{"headers":headers},{"files":files},{"cookies":cookies}]
-
+    nmap_object = nmap.nmap(str(url))
+    nmap_scan_result = nmap_object.nmap_scan()
+    server_side_vulnerabilities = parse_server_side_vulnerabilities(report_text)
+    return [{"technologies": technologies}, {"headers": headers}, {"files": files}, {"cookies": cookies}, {"nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
 
 
 def formate_report_test():
@@ -205,28 +231,243 @@ def formate_report_test():
     headers = parse_vulnerability_report_for_headers(ReportSample)
     files = parse_vulnerability_report_for_txt_files(ReportSample)
     cookies = parse_vulnerability_report_for_insecure_cookie(ReportSample)
-    return [{"technologies":technologies},{"headers":headers},{"files":files},{"cookies":cookies}]
+    nmap_object = nmap.nmap("url")
+    nmap_scan_result = nmap_object.nmap_scan_test()
+    server_side_vulnerabilities = parse_server_side_vulnerabilities(ReportSampleWithCVE)
+    return [{"technologies": technologies}, {"headers": headers}, {"files": files}, {"cookies": cookies}, {"nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
 
 
+ReportSampleWithCVE = '''
++----------------------------------------------------------+
+|                Vulnerability Scan Report                 |
++----------------------------------------------------------+
 
 
+[1] Vulnerabilities found for server-side software
+        - Risk Level: 3 (High)
+
+        Vulnerability Details:
+        - CVE-2020-13664:
+                - Risk Level: 
+                - CVSS: 9.3
+                - Summary: Arbitrary PHP code execution vulnerability in Drupal Core under certain circumstances. An attacker could trick an administrator into visiting a malicious site that could result in creating a carefully named directory on the file system. With this directory in place, an attacker could attempt to brute force a remote code execution vulnerability. Windows servers are most likely to be affected. This issue affects: Drupal Drupal Core 8.8.x versions prior to 8.8.8; 8.9.x versions prior to 8.9.1; 9.0.1 versions prior to 9.0.1.
+                - Affected software: drupal 9
+
+        - CVE-2020-13665:
+                - Risk Level: 
+                - CVSS: 7.5
+                - Summary: Access bypass vulnerability in Drupal Core allows JSON:API when JSON:API is in read/write mode. Only sites that have the read_only set to FALSE under jsonapi.settings config are vulnerable. This issue affects: Drupal Drupal Core 8.8.x versions prior to 8.8.8; 8.9.x versions prior to 8.9.1; 9.0.x versions prior to 9.0.1.
+                - Affected software: drupal 9
+
+        - CVE-2022-25273:
+                - Risk Level: 
+                - CVSS: 7.5
+                - Summary: Drupal core's form API has a vulnerability where certain contributed or custom modules' forms may be vulnerable to improper input validation. This could allow an attacker to inject disallowed values or overwrite data. Affected forms are uncommon, but in certain cases an attacker could alter critical or sensitive data.
+                - Affected software: drupal 9
+
+        - CVE-2022-25275:
+                - Risk Level: 
+                - CVSS: 7.5
+                - Summary: In some situations, the Image module does not correctly check access to image files not stored in the standard public files directory when generating derivative images using the image styles system. Access to a non-public file is checked only if it is stored in the "private" file system. However, some contributed modules provide additional file systems, or schemes, which may lead to this vulnerability. This vulnerability is mitigated by the fact that it only applies when the site sets (Drupal 9) $config['image.settings']['allow_insecure_derivatives'] or (Drupal 7) $conf['image_allow_insecure_derivatives'] to TRUE. The recommended and default setting is FALSE, and Drupal core does not provide a way to change that in the admin UI. Some sites may require configuration changes following this security release. Review the release notes for your Drupal version if you have issues accessing files or image styles after updating.
+                - Affected software: drupal 9
+
+        - CVE-2022-39261:
+                - Risk Level: 
+                - CVSS: 7.5
+                - Summary: Twig is a template language for PHP. Versions 1.x prior to 1.44.7, 2.x prior to 2.15.3, and 3.x prior to 3.4.3 encounter an issue when the filesystem loader loads templates for which the name is a user input. It is possible to use the `source` or `include` statement to read arbitrary files from outside the templates' directory when using a namespace like `@somewhere/../some.file`. In such a case, validation is bypassed. Versions 1.44.7, 2.15.3, and 3.4.3 contain a fix for validation of such template names. There are no known workarounds aside from upgrading.
+                - Affected software: drupal 9
 
 
+        - Description: We noticed known vulnerabilities in the target application. They are usually related to outdated systems and expose the affected applications to the risk of unauthorized access to confidential data and possibly denial of service attacks.
+        - Recommendation: We recommend you to upgrade the affected software to the latest version in order to eliminate the risk of these vulnerabilities.
 
 
+[2] Missing security header: Content-Security-Policy
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - URL: https://www.aston.ac.uk/
+                - Evidence: Response does not include the HTTP Content-Security-Policy security header or meta tag
 
 
+        - Description: We noticed that the target application lacks the Content-Security-Policy (CSP) header in its HTTP responses. The CSP header is a security measure that instructs web browsers to enforce specific security rules, effectively preventing the exploitation of Cross-Site Scripting (XSS) vulnerabilities.
+        - Recommendation: Configure the Content-Security-Header to be sent with each HTTP response in order to apply the specific policies needed by the application.
 
 
+[3] Server software and technology found
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - Software / Version: AppNexus
+                - Category: Advertising
+
+        - Evidence 2:
+                - Software / Version: Amazon Cloudfront
+                - Category: CDN
+
+        - Evidence 3:
+                - Software / Version: Crazy Egg
+                - Category: Analytics
+
+        - Evidence 4:
+                - Software / Version: Facebook Pixel 2.9.153
+                - Category: Analytics
+
+        - Evidence 5:
+                - Software / Version: Google Analytics
+                - Category: Analytics
+
+        - Evidence 6:
+                - Software / Version: jQuery UI 1.13.2
+                - Category: JavaScript libraries
+
+        - Evidence 7:
+                - Software / Version: Nginx
+                - Category: Web servers, Reverse proxies
+
+        - Evidence 8:
+                - Software / Version: PHP
+                - Category: Programming languages
+
+        - Evidence 9:
+                - Software / Version: Cloudflare
+                - Category: CDN
+
+        - Evidence 10:
+                - Software / Version: Google Tag Manager
+                - Category: Tag managers
+
+        - Evidence 11:
+                - Software / Version: Lodash 1.13.6
+                - Category: JavaScript libraries
+
+        - Evidence 12:
+                - Software / Version: YouTube
+                - Category: Video players
+
+        - Evidence 13:
+                - Software / Version: TikTok Pixel
+                - Category: Analytics
+
+        - Evidence 14:
+                - Software / Version: Amazon Web Services
+                - Category: PaaS
+
+        - Evidence 15:
+                - Software / Version: Linkedin Ads
+                - Category: Advertising
+
+        - Evidence 16:
+                - Software / Version: Linkedin Insight Tag
+                - Category: Analytics
+
+        - Evidence 17:
+                - Software / Version: cdnjs
+                - Category: CDN
+
+        - Evidence 18:
+                - Software / Version: Bootstrap 3.4.1
+                - Category: UI frameworks
+
+        - Evidence 19:
+                - Software / Version: LazySizes
+                - Category: JavaScript libraries, Performance
+
+        - Evidence 20:
+                - Software / Version: core-js 3.20.3
+                - Category: JavaScript libraries
+
+        - Evidence 21:
+                - Software / Version: jQuery 3.6.3
+                - Category: JavaScript libraries
+
+        - Evidence 22:
+                - Software / Version: Select2
+                - Category: JavaScript libraries
+
+        - Evidence 23:
+                - Software / Version: Swiper
+                - Category: JavaScript libraries
+
+        - Evidence 24:
+                - Software / Version: UserWay
+                - Category: Accessibility
+
+        - Evidence 25:
+                - Software / Version: Webpack
+                - Category: Miscellaneous
+
+        - Evidence 26:
+                - Software / Version: Module Federation
+                - Category: Miscellaneous
+
+        - Evidence 27:
+                - Software / Version: Drupal 9
+                - Category: CMS
+
+        - Evidence 28:
+                - Software / Version: Hotjar
+                - Category: Analytics
+
+        - Evidence 29:
+                - Software / Version: jsDelivr
+                - Category: CDN
+
+        - Evidence 30:
+                - Software / Version: HSTS
+                - Category: Security
+
+        - Evidence 31:
+                - Software / Version: Site Search 360
+                - Category: Search engines
 
 
+        - Description: We noticed that server software and technology details are exposed, potentially aiding attackers in tailoring specific exploits against identified systems and versions.
+        - Recommendation: We recommend you to eliminate the information which permits the identification of software platform, technology, server and operating system: HTTP server headers, HTML meta information, etc.
 
 
+[4] Robots.txt file found
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - URL: https://www.aston.ac.uk/robots.txt
 
 
+        - Description: We found the robots.txt on the target server. This file instructs web crawlers what URLs and endpoints of the web application they can visit and crawl. Website administrators often misuse this file while attempting to hide some web pages from the users.
+        - Recommendation: We recommend you to manually review the entries from robots.txt and remove the ones which lead to sensitive locations in the website (ex. administration panels, configuration files, etc).
 
 
+[5] Website is accessible.
+[6] Nothing was found for client access policies.
+[7] Nothing was found for absence of the security.txt file.
+[8] Nothing was found for use of untrusted certificates.
+[9] Nothing was found for enabled HTTP debug methods.
+[10] Nothing was found for secure communication.
+[11] Nothing was found for directory listing.
+[12] Nothing was found for missing HTTP header - Strict-Transport-Security.
+[13] Nothing was found for missing HTTP header -  X-Content-Type-Options.
+[14] Nothing was found for missing HTTP header - Referrer.
+[15] Nothing was found for domain too loose set for cookies.
+[16] Nothing was found for HttpOnly flag of cookie.
+[17] Nothing was found for Secure flag of cookie.
+[18] Nothing was found for unsafe HTTP header Content Security Policy.
 
++----------------- TEST summary -----------------+
+|                                                |
+|  URL: https://www.aston.ac.uk/                 |
+|  High Risk Findings: 1                         |
+|  Medium Risk Findings: 0                       |
+|  Low Risk Findings: 3                          |
+|  Info Risk Findings: 14                        |
+|  Start time: 2024-04-16 03:40:06               |
+|  End time: 2024-04-16 03:40:30                 |
+|                                                |
++------------------------------------------------+
+
+'''
 
 
 ReportSample = '''
