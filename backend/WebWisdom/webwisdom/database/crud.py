@@ -30,6 +30,16 @@ def get_results_by_id_of_user(db: Session, user_id: int):
     limit = 100
     return db.query(models.Results).filter(models.Results.user_id == user_id).offset(skip).limit(limit).all()
 
+
+def get_latest_user_result(db: Session,user_id: int):
+    return db.query(models.Results).filter(models.Results.user_id == user_id).order_by(models.Results.created_at.desc()).first()
+
+
+def get_result_by_id(db: Session,id: int):
+    return db.query(models.Results).filter(models.Results.id == id).first()
+
+
+
 # def get_items(db: Session, skip: int = 0, limit: int = 100):
 #     return db.query(models.Form).offset(skip).limit(limit).all()
 

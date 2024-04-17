@@ -4,10 +4,6 @@ from . import nmap
 import re
 
 
-
-
-
-
 def get_vulnerability_report(url):
 
     command = f'ptt -q --nocolor run website_scanner {url}'
@@ -147,6 +143,7 @@ def parse_vulnerability_report_for_txt_files(report_text: str):
 
 
 def parse_vulnerability_report_for_insecure_cookie(report_text: str):
+
     pattern = (
         r"cookie\s*(.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?"
         r"Vulnerability Details:\s*(?:- Evidence \d+:\s*\n"
@@ -179,24 +176,31 @@ def parse_vulnerability_report_for_insecure_cookie(report_text: str):
 
 
 def parse_server_side_vulnerabilities(report_text: str):
+
     vulnerabilities = []
 
     # Start extracting from the specific section title
     # Using a lookahead to ensure we don't skip over any part of the text that includes CVEs
-    vulnerability_section_start = re.search(r"Vulnerabilities found for server-side software\s*-\s*Risk Level: \d+ \((\w+)\)", report_text)
+    vulnerability_section_start = re.search(
+        r"Vulnerabilities found for server-side software\s*-\s*Risk Level: \d+ \((\w+)\)", report_text)
     if vulnerability_section_start:
+
         risk_level = vulnerability_section_start.group(1)
         # Start capturing after "Vulnerability Details:"
-        vulnerability_details_section = report_text[vulnerability_section_start.end():]
-        vulnerability_details_start = vulnerability_details_section.find("Vulnerability Details:")
+        vulnerability_details_section = report_text[vulnerability_section_start.end(
+        ):]
+        vulnerability_details_start = vulnerability_details_section.find(
+            "Vulnerability Details:")
         vulnerability_details_text = vulnerability_details_section[vulnerability_details_start:]
 
         # Splitting by "Description:" or end of section to avoid reading into unrelated areas
-        vulnerability_details_text = vulnerability_details_text.split("Description:")[0]
+        vulnerability_details_text = vulnerability_details_text.split("Description:")[
+            0]
 
         # Regular expression to capture each CVE detail
-        cve_pattern = re.compile(r"- (CVE-\d+-\d+):\s*?\n\s*?-\s*?Risk Level:.*?\n\s*?-\s*?CVSS: (\d+\.\d+)\n\s*?-\s*?Summary: (.*?)\n\s*?-\s*?Affected software: (drupal 9)", re.DOTALL)
-        
+        cve_pattern = re.compile(
+            r"- (CVE-\d+-\d+):\s*?\n\s*?-\s*?Risk Level:.*?\n\s*?-\s*?CVSS: (\d+\.\d+)\n\s*?-\s*?Summary: (.*?)\n\s*?-\s*?Affected software: (drupal 9)", re.DOTALL)
+
         matches = cve_pattern.finditer(vulnerability_details_text)
         for match in matches:
             cve_id, cvss, summary, affected_software = match.groups()
@@ -207,11 +211,13 @@ def parse_server_side_vulnerabilities(report_text: str):
                 "affected_software": affected_software
             })
 
-    return {
-        "title": "Vulnerabilities found for server-side software",
-        "risk_level": risk_level,
-        "cve_list": vulnerabilities
-    }
+        return {
+            "title": "Vulnerabilities found for server-side software",
+            "risk_level": risk_level,
+            "cve_list": vulnerabilities
+        }
+   
+
 
 def formate_report(url):
     print("urlhere", url)
@@ -222,7 +228,8 @@ def formate_report(url):
     cookies = parse_vulnerability_report_for_insecure_cookie(report_text)
     nmap_object = nmap.nmap(str(url))
     nmap_scan_result = nmap_object.nmap_scan()
-    server_side_vulnerabilities = parse_server_side_vulnerabilities(report_text)
+    server_side_vulnerabilities = parse_server_side_vulnerabilities(
+        report_text)
     return [{"technologies": technologies}, {"headers": headers}, {"files": files}, {"cookies": cookies}, {"nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
 
 
@@ -233,7 +240,8 @@ def formate_report_test():
     cookies = parse_vulnerability_report_for_insecure_cookie(ReportSample)
     nmap_object = nmap.nmap("url")
     nmap_scan_result = nmap_object.nmap_scan_test()
-    server_side_vulnerabilities = parse_server_side_vulnerabilities(ReportSampleWithCVE)
+    server_side_vulnerabilities = parse_server_side_vulnerabilities(
+        ReportSampleWithCVE)
     return [{"technologies": technologies}, {"headers": headers}, {"files": files}, {"cookies": cookies}, {"nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
 
 

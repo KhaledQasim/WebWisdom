@@ -2,12 +2,13 @@ import { signal } from "@preact/signals-react";
 import { useSignals, useSignalEffect } from "@preact/signals-react/runtime";
 import { useNavigate } from "react-router-dom";
 import { axiosStartScan } from "../api/axios";
-
+import Loading from "./Loading";
 
 const url = signal("");
 const disabled = signal(false);
 const isLoading = signal(false);
 const errorMessage = signal("");
+const id = signal();
 
 export default function Hero() {
   useSignals();
@@ -43,17 +44,15 @@ export default function Hero() {
         disabled.value = false;
         isLoading.value = false;
 
-        if (response.data.error) {
-          errorMessage.value = String(response.data.error);
-        } else {
-          localStorage.setItem('resultData', JSON.stringify(response.data));
-          navigate("/result")
-        }
+        id.value = response.data.id
+        navigate(`/result/${id}`);
+      
       })
       .catch(function error(error) {
         disabled.value = false;
         isLoading.value = false;
-        console.error(error);
+        errorMessage.value = String(error.response.data.detail)
+        console.error("error in Hero page",error);
       });
   }
 
@@ -65,9 +64,7 @@ export default function Hero() {
   return (
     <>
       {isLoading.value ? (
-        <div className="w-full flex justify-center">
-          <div className="loading loading-ring text-primary w-[40%]"></div>
-        </div>
+        <Loading/>
       ) : (
         <section className="w-full py-6 sm:py-12 md:py-24 lg:py-32 xl:py-48 flex justify-center">
           <div className="container px-4 md:px-6 flex flex-col items-center justify-center space-y-4 text-center">

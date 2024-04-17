@@ -7,6 +7,8 @@ import Layout from "./components/Layout.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Result from "./pages/Result.jsx";
+import Results from "./pages/Results.jsx";
+
 import ErrorPage from "./pages/ErrorPage.jsx";
 import { userSignal } from "./lib/CheckUserAccount.jsx";
 
@@ -20,10 +22,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route index element={<App />} />
           <Route path="/login" element={<Login user={userSignal}  />} />
           <Route path="/register" element={<Register user={userSignal}/>} />
-          <Route path="/result" element={<Result />} />
+          <Route path="/result/:id" element={<Result />} />
+          <Route path="/results" element={<Results/>} />
           <Route path="*" element={<ErrorPage />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter>  
   </React.StrictMode>
 );

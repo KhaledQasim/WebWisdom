@@ -24,7 +24,16 @@ export default function Navbar({ user }) {
               Welcome {JSON.stringify(user.value.username).split('"').join("")}
             </div>
             <button
-              className="btn btn-neutral"
+              className="btn btn-primary"
+              onClick={() => {
+               
+                navigate("/results");
+              }}
+            >
+              Past Results
+            </button>
+            <button
+              className="btn btn-primary"
               onClick={() => {
                 Logout();
                 navigate("/");

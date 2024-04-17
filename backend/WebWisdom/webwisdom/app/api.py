@@ -27,14 +27,38 @@ async def Test_parse(db: Session = Depends(auth.get_db)):
 
      
     data = data_parse.formate_report_test()
-    result = { "connection_and_records": "result_check_site",
-        "data": data}
+    result = {
+    
+        "connection_and_records": {
+            "port_80": True,
+            "port_443": True,
+            "message": "",
+            "url": "testurl.com",
+            "ssl": True,
+            "IP_1": "35.44.22.33"
+        },
+        "data": data
+    }
 
    
-   
+    
     auth.crud.create_user_test_result(db=db, result=json.dumps(result), user_id=1)
+    
+    
+    saved_result = auth.crud.get_latest_user_result(db=db,user_id=1)
+    
+    print(saved_result.id)
+   
     return {
-        "connection_and_records": "result_check_site",
+        "id":int(saved_result.id),
+        "connection_and_records": {
+            "port_80": True,
+            "port_443": True,
+            "message": "",
+            "url": "testurl.com",
+            "ssl": True,
+            "IP_1": "35.44.22.33"
+        },
         "data": data
     }
  
@@ -75,7 +99,10 @@ async def Start_scan(User_provided_url: schemas.URL, user: Annotated[schemas.Use
 
         auth.crud.create_user_test_result(db=db, result=json.dumps(result), user_id=user_info.id)
         
+        saved_result = auth.crud.get_latest_user_result(db=db, user_id=user_info.id)
+        
         return {
+            "id":int(saved_result.id),
             "connection_and_records": result_check_site,
             "data": data
         }

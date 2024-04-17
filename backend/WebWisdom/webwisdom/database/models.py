@@ -21,6 +21,7 @@ class Results(Base):
     result = Column(Text, nullable=False)  # Long text field
     user_id = Column(Integer, ForeignKey('users.id'))  # Foreign key to users table
     created_at = Column(DateTime(timezone=True), default=func.now())  # Auto-set to current time
+
     # Relationship to link back to the Users model
     user = relationship("Users", back_populates="results")
    

@@ -25,3 +25,13 @@ export const axiosStartScan = axios.create({
     baseURL: String(backendURL+"/api/start-scan"),
     withCredentials: true
 })
+
+export const axiosGetAllResults = axios.create({
+    baseURL: String(backendURL+"/auth/get-all-results"),
+    withCredentials: true
+})
+
+export const axiosGetResultByID = axios.create({
+    baseURL: String(backendURL+"/auth/get-result-by-id/"),
+    withCredentials: true
+})
