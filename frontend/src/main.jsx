@@ -13,7 +13,6 @@ import ErrorPage from "./pages/ErrorPage.jsx";
 import { userSignal } from "./lib/CheckUserAccount.jsx";
 
 
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
