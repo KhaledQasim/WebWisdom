@@ -6,7 +6,11 @@ import ResultBox from "../components/ResultBox";
 import ResultSummary from "../components/ResultSummary";
 import ResultBoxWithIP from "../components/ResultBoxWithIP";
 import ResultBoxTechnologies from "../components/ResultBoxTechnologies";
+import ResultBoxHeaders from "../components/ResultBoxHeaders";
 import { useParams } from "react-router-dom";
+import ResultBoxFiles from "../components/ResultBoxFiles";
+import ResultBoxCookies from "../components/ResultBoxCookies";
+import ResultBoxServerVulnerabilities from "../components/ResultBoxServerVulnerabilities";
 
 const resultData = signal();
 const loading = signal(true);
@@ -24,7 +28,7 @@ export default function Result() {
       .then((response) => {
         if (response.status === 200) {
           resultData.value = JSON.parse(response.data.result);
-          console.log("result data in results page",resultData.value);
+          console.log("result data in results page", resultData.value);
           handleDataVariables();
         }
       })
@@ -70,23 +74,56 @@ export default function Result() {
           />
 
           {/* Box for Technologies used on the website*/}
-          {/* {
-            // check that the object technologies is present in the data array
-            resultData.value.data.find((item) =>
-              Object.prototype.hasOwnProperty.call(item, "technologies")
-            ) ? (
-              <ResultBoxTechnologies
-                // array of objects that contain the technologies used on the website, including name version and category
-                data={resultData.value.data[0].technologies}
-                content={"result box content "}
-                MainTitle={"Technologies"}
-                MainContent={"List of the technologies used on the website"}
-                good={"neutral"}
-              />
-            ) : (
-              console.warn("No technologies object inside the data array.")
-            )
-          } */}
+
+          <ResultBoxTechnologies
+            // array of objects that contain the technologies used on the website, including name version and category
+            data={resultData}
+            content={"result box content "}
+            MainTitle={"Technologies"}
+            MainContent={"List of the technologies used on the website"}
+            good={"neutral"}
+          />
+
+          {/* Box for displaying headers information */}
+          <ResultBoxHeaders
+            data={resultData}
+            MainTitle={"HTTP Headers"}
+            MainContent={
+              "Information about the headers of the webserver, headers are information passed between a web browser and a website when it's visited"
+            }
+            good={"neutral"}
+          />
+
+          {/* Box for displaying configuration files found on webserver*/}
+          <ResultBoxFiles
+            data={resultData}
+            MainTitle={"Files Found on WebServer"}
+            MainContent={
+              "Information about some default files found on the webserver that can leak data about the inner workings of the webserver"
+            }
+            good={"neutral"}
+          />
+
+          {/* Box for displaying miss configured or insecure cookies*/}
+          <ResultBoxCookies
+            data={resultData}
+            MainTitle={"Misconfigured or Insecure Cookies"}
+            MainContent={
+              "Information about misconfigured or insecure Cookies found"
+            }
+            good={"neutral"}
+          />
+
+
+          {/* Box for displaying server side software vulnerabilities*/}
+            <ResultBoxServerVulnerabilities
+            data={resultData}
+            MainTitle={"Server Side Vulnerabilities"}
+            MainContent={
+              "Finds Server Side Vulnerabilities by identifying the server software that is running and which version it is, the security tool then checks the CVE (Common Vulnerabilities and Exposures) databases for vulnerabilities associated with this specific software. This can be a major vulnerability depending on the risk severity of the CVE"
+            }
+            good={"neutral"}
+          />
         </>
       )}
     </>

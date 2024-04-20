@@ -90,6 +90,7 @@ async def Start_scan(User_provided_url: schemas.URL, user: Annotated[schemas.Use
         
         if(result_check_site["port_80"]==False and result_check_site["port_443"] == False):
             raise HTTPException(status_code=405,detail="Site is down or does not exist please check the url and that the site is accessible and running!") 
+        
         data = data_parse.formate_report(User_provided_url.url)
 
         result = {

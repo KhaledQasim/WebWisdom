@@ -75,7 +75,7 @@ def parse_vulnerability_report_for_headers(report_text: str):
     for match in matches:
         header, risk_level, url, evidence, description, recommendation = match.groups()
         result = {
-            "MissingSecurityHeader": header.strip(),
+            "Header": "Missing Security Header: "+header.strip(),
             "RiskLevel": risk_level.strip(),
             "Description": description.strip(),
             "Recommendation": recommendation.strip(),
@@ -92,7 +92,7 @@ def parse_vulnerability_report_for_headers(report_text: str):
     for match in matches:
         header, risk_level, url, evidence, description, recommendation = match.groups()
         result = {
-            "UnsafeSecurityHeader": header.strip(),
+            "Header": "Unsafe Security Header: "+header.strip(),
             "RiskLevel": risk_level.strip(),
             "Description": description.strip(),
             "Recommendation": recommendation.strip(),
