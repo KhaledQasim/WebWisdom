@@ -49,7 +49,7 @@ const ResultBoxServerVulnerabilities = ({
 
             <StateOfBox
               content={"Description of Issue: "+serverVulnerabilities.summary}
-              good={"neutral"}
+              good={"bad"}
               subHeading={"Affected Software: "+serverVulnerabilities.affected_software}
             />
         

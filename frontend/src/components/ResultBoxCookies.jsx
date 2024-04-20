@@ -19,16 +19,42 @@ const ResultBoxCookies = ({
   useSignals();
 
   useSignalEffect(() => {
-    if (data.value.data[3]?.cookies !== null && !isEmptyObject(data.value.data[3]?.cookies)) {
+    if (
+      data.value.data[3]?.cookies !== null &&
+      !isEmptyObject(data.value.data[3]?.cookies)
+    ) {
       cookies.value = data.value.data[3].cookies;
     } else {
       cookies.value = false;
     }
-  
+
     loading.value = false;
   });
   function isEmptyObject(obj) {
     return Object.keys(obj).length === 0 && obj.constructor === Object;
+  }
+
+  function renderContentStateBasedOnCookiesRiskLevel(cookies) {
+    let content;
+
+    switch (
+      true // The switch is always true, so we can use it to check multiple conditions
+    ) {
+      case cookies.includes("1"):
+        content = "neutral";
+        break;
+      case cookies.includes("2"):
+        content = "warning";
+        break;
+      case cookies.includes("3"):
+        content = "bad";
+        break;
+      default:
+        content = "neutral";
+        break;
+    }
+
+    return content;
   }
 
   return loading.value ? (
@@ -39,33 +65,32 @@ const ResultBoxCookies = ({
         <div className="object-center mt-2">{MainTitle}</div>
       </div>
       <div className="my-5 px-4 text-base ">{MainContent}</div>
-      {cookies.value.map((cookies,index) => (
+      {cookies.value.map((cookies, index) => (
         <div key={index}>
           <div className="text-accent px-4 text-xl grid gap-1">
-            {cookies.IssueDetail+", Risk Level: "+cookies.RiskLevel}
+            {cookies.IssueDetail + ", Risk Level: " + cookies.RiskLevel}
             <div className="border-b-2 border-base-content" />
-
             <StateOfBox
-              content={"Description of Issue: "+cookies.Description}
-              good={"neutral"}
+              content={
+                "Description of Issue: " +
+                cookies.Description +
+                "\n\n Recommendation to solve the issue: " +
+                cookies.Recommendation +
+                "\n\n Evidence Detail: " +
+                cookies.Evidence.EvidenceDetail +
+                ", -- Cookie Name: " +
+                cookies.Evidence.CookieName +
+                ", -- URL of Cookie: " +
+                cookies.Evidence.URL
+              }
+              good={renderContentStateBasedOnCookiesRiskLevel(
+                cookies.RiskLevel
+              )}
               subHeading={""}
             />
-            <StateOfBox
-              content={"Recommendation to solve the issue: "+cookies.Recommendation}
-              good={"neutral"}
-              subHeading={""}
-            />
-            <StateOfBox
-              content={"Evidence Detail: "+cookies.Evidence.EvidenceDetail+", -- Cookie Name: "+cookies.Evidence.CookieName+", -- URL of Cookie: "+cookies.Evidence.URL}
-              good={"neutral"}
-              subHeading={""}
-            />
-         
-            
           </div>
         </div>
       ))}
-      
     </div>
   ) : (
     <></>
@@ -73,4 +98,3 @@ const ResultBoxCookies = ({
 };
 
 export default ResultBoxCookies;
-

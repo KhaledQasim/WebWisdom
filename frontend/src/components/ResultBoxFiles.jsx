@@ -19,7 +19,10 @@ const ResultBoxFiles = ({
   useSignals();
 
   useSignalEffect(() => {
-    if (data.value.data[2]?.files !== null && !isEmptyObject(data.value.data[2]?.files)) {
+    if (
+      data.value.data[2]?.files !== null &&
+      !isEmptyObject(data.value.data[2]?.files)
+    ) {
       files.value = data.value.data[2].files;
     } else {
       files.value = false;
@@ -31,6 +34,29 @@ const ResultBoxFiles = ({
     return Object.keys(obj).length === 0 && obj.constructor === Object;
   }
 
+  function renderContentStateBasedOnFilesRiskLevel(Files) {
+    let content;
+
+    switch (
+      true // The switch is always true, so we can use it to check multiple conditions
+    ) {
+      case Files.includes("1"):
+        content = "neutral";
+        break;
+      case Files.includes("2"):
+        content = "warning";
+        break;
+      case Files.includes("3"):
+        content = "bad";
+        break;
+      default:
+        content = "neutral";
+        break;
+    }
+
+    return content;
+  }
+
   return loading.value ? (
     <Loading />
   ) : files.value ? (
@@ -39,28 +65,25 @@ const ResultBoxFiles = ({
         <div className="object-center mt-2">{MainTitle}</div>
       </div>
       <div className="my-5 px-4 text-base ">{MainContent}</div>
-      {files.value.map((files,index) => (
+      {files.value.map((files, index) => (
         <div key={index}>
           <div className="text-accent px-4 text-xl grid gap-1">
-            {files.File+" Risk Level: "+files.RiskLevel}
+            {files.File + " Risk Level: " + files.RiskLevel}
             <div className="border-b-2 border-base-content" />
 
             <StateOfBox
-              content={"Description of Issue: "+files.Description}
-              good={"neutral"}
+              content={
+                "Description of Issue: " +
+                files.Description +
+                "\n\n Recommendation to solve the issue: " +
+                files.Recommendation
+              }
+              good={renderContentStateBasedOnFilesRiskLevel(files.RiskLevel)}
               subHeading={""}
             />
-            <StateOfBox
-              content={"Recommendation to solve the issue: "+files.Recommendation}
-              good={"neutral"}
-              subHeading={""}
-            />
-         
-            
           </div>
         </div>
       ))}
-      
     </div>
   ) : (
     <></>
@@ -68,4 +91,3 @@ const ResultBoxFiles = ({
 };
 
 export default ResultBoxFiles;
-

@@ -180,12 +180,12 @@ def parse_server_side_vulnerabilities(report_text: str):
     vulnerabilities = []
 
     # Start extracting from the specific section title
-    # Using a lookahead to ensure we don't skip over any part of the text that includes CVEs
     vulnerability_section_start = re.search(
         r"Vulnerabilities found for server-side software\s*-\s*Risk Level: \d+ \((\w+)\)", report_text)
-    if vulnerability_section_start:
 
+    if vulnerability_section_start:
         risk_level = vulnerability_section_start.group(1)
+
         # Start capturing after "Vulnerability Details:"
         vulnerability_details_section = report_text[vulnerability_section_start.end(
         ):]
@@ -193,13 +193,9 @@ def parse_server_side_vulnerabilities(report_text: str):
             "Vulnerability Details:")
         vulnerability_details_text = vulnerability_details_section[vulnerability_details_start:]
 
-        # Splitting by "Description:" or end of section to avoid reading into unrelated areas
-        vulnerability_details_text = vulnerability_details_text.split("Description:")[
-            0]
-
         # Regular expression to capture each CVE detail
         cve_pattern = re.compile(
-            r"- (CVE-\d+-\d+):\s*?\n\s*?-\s*?Risk Level:.*?\n\s*?-\s*?CVSS: (\d+\.\d+)\n\s*?-\s*?Summary: (.*?)\n\s*?-\s*?Affected software: (drupal 9)", re.DOTALL)
+            r"- (CVE-\d+-\d+):\s*?\n\s*?-\s*?Risk Level:.*?\n\s*?-\s*?CVSS: (\d+\.\d+)\n\s*?-\s*?Summary: (.*?)\n\s*?-\s*?Affected software: (.+?)(?=\n\s*?-|$)", re.DOTALL)
 
         matches = cve_pattern.finditer(vulnerability_details_text)
         for match in matches:
@@ -208,7 +204,7 @@ def parse_server_side_vulnerabilities(report_text: str):
                 "id": cve_id,
                 "CVSS": float(cvss),
                 "summary": summary.strip(),
-                "affected_software": affected_software
+                "affected_software": affected_software.strip()
             })
 
         return {
@@ -216,7 +212,6 @@ def parse_server_side_vulnerabilities(report_text: str):
             "risk_level": risk_level,
             "cve_list": vulnerabilities
         }
-   
 
 
 def formate_report(url):
@@ -241,8 +236,304 @@ def formate_report_test():
     nmap_object = nmap.nmap("url")
     nmap_scan_result = nmap_object.nmap_scan_test()
     server_side_vulnerabilities = parse_server_side_vulnerabilities(
-        ReportSampleWithCVE)
+        SeaViewReportSample)
     return [{"technologies": technologies}, {"headers": headers}, {"files": files}, {"cookies": cookies}, {"nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
+
+
+SeaViewReportSample = '''
++----------------------------------------------------------+
+|                Vulnerability Scan Report                 |
++----------------------------------------------------------+
+
+
+[1] Vulnerabilities found for server-side software
+        - Risk Level: 3 (High)
+
+        Vulnerability Details:
+        - CVE-2020-13664:
+                - Risk Level: 
+                - CVSS: 9.3
+                - Summary: Arbitrary PHP code execution vulnerability in Drupal Core under certain circumstances. An attacker could trick an administrator into visiting a malicious site that could result in creating a carefully named directory on the file system. With this directory in place, an attacker could attempt to brute force a remote code execution vulnerability. Windows servers are most likely to be affected. This issue affects: Drupal Drupal Core 8.8.x versions prior to 8.8.8; 8.9.x versions prior to 8.9.1; 9.0.1 versions prior to 9.0.1.
+                - Affected software: drupal 9
+
+        - CVE-2020-13665:
+                - Risk Level: 
+                - CVSS: 7.5
+                - Summary: Access bypass vulnerability in Drupal Core allows JSON:API when JSON:API is in read/write mode. Only sites that have the read_only set to FALSE under jsonapi.settings config are vulnerable. This issue affects: Drupal Drupal Core 8.8.x versions prior to 8.8.8; 8.9.x versions prior to 8.9.1; 9.0.x versions prior to 9.0.1.
+                - Affected software: drupal 9
+
+        - CVE-2022-25273:
+                - Risk Level: 
+                - CVSS: 7.5
+                - Summary: Drupal core's form API has a vulnerability where certain contributed or custom modules' forms may be vulnerable to improper input validation. This could allow an attacker to inject disallowed values or overwrite data. Affected forms are uncommon, but in certain cases an attacker could alter critical or sensitive data.
+                - Affected software: drupal 9
+
+        - CVE-2022-25275:
+                - Risk Level: 
+                - CVSS: 7.5
+                - Summary: In some situations, the Image module does not correctly check access to image files not stored in the standard public files directory when generating derivative images using the image styles system. Access to a non-public file is checked only if it is stored in the "private" file system. However, some contributed modules provide additional file systems, or schemes, which may lead to this vulnerability. This vulnerability is mitigated by the fact that it only applies when the site sets (Drupal 9) $config['image.settings']['allow_insecure_derivatives'] or (Drupal 7) $conf['image_allow_insecure_derivatives'] to TRUE. The recommended and default setting is FALSE, and Drupal core does not provide a way to change that in the admin UI. Some sites may require configuration changes following this security release. Review the release notes for your Drupal version if you have issues accessing files or image styles after updating.
+                - Affected software: drupal 9
+
+        - CVE-2022-39261:
+                - Risk Level: 
+                - CVSS: 7.5
+                - Summary: Twig is a template language for PHP. Versions 1.x prior to 1.44.7, 2.x prior to 2.15.3, and 3.x prior to 3.4.3 encounter an issue when the filesystem loader loads templates for which the name is a user input. It is possible to use the `source` or `include` statement to read arbitrary files from outside the templates' directory when using a namespace like `@somewhere/../some.file`. In such a case, validation is bypassed. Versions 1.44.7, 2.15.3, and 3.4.3 contain a fix for validation of such template names. There are no known workarounds aside from upgrading.
+                - Affected software: drupal 9
+
+
+        - Description: We noticed known vulnerabilities in the target application. They are usually related to outdated systems and expose the affected applications to the risk of unauthorized access to confidential data and possibly denial of service attacks.
+        - Recommendation: We recommend you to upgrade the affected software to the latest version in order to eliminate the risk of these vulnerabilities.
+
+        - Risk Level: 2 (Medium)
+
+        Vulnerability Details:
+        - CVE-2023-2745:
+                - Risk Level: 
+                - CVSS: 5.4
+                - Summary: WordPress Core is vulnerable to Directory Traversal in versions up to, and including, 6.2, via the ‘wp_lang’ parameter. This allows unauthenticated attackers to access and load arbitrary translation files. In cases where an attacker is able to upload a crafted translation file onto the site, such as via an upload form, this could be also used to perform a Cross-Site Scripting attack.
+                - Affected software: wordpress 6.2
+
+        - CVE-2023-38000:
+                - Risk Level: 
+                - CVSS: 5.4
+                - Summary: Auth. Stored (contributor+) Cross-Site Scripting (XSS) vulnerability in WordPress core 6.3 through 6.3.1, from 6.2 through 6.2.2, from 6.1 through 6.1.3, from 6.0 through 6.0.5, from 5.9 through 5.9.7 and Gutenberg plugin <= 16.8.0 versions.
+                - Affected software: wordpress 6.2
+
+        - CVE-2023-5561:
+                - Risk Level: 
+                - CVSS: 5.3
+                - Summary: WordPress does not properly restrict which user fields are searchable via the REST API, allowing unauthenticated attackers to discern the email addresses of users who have published public posts on an affected website via an Oracle style attack
+                - Affected software: wordpress 6.2
+
+        - CVE-2023-39999:
+                - Risk Level: 
+                - CVSS: 4.3
+                - Summary: Exposure of Sensitive Information to an Unauthorized Actor in WordPress from 6.3 through 6.3.1, from 6.2 through 6.2.2, from 6.1 through 6.13, from 6.0 through 6.0.5, from 5.9 through 5.9.7, from 5.8 through 5.8.7, from 5.7 through 5.7.9, from 5.6 through 5.6.11, from 5.5 through 5.5.12, from 5.4 through 5.4.13, from 5.3 through 5.3.15, from 5.2 through 5.2.18, from 5.1 through 5.1.16, from 5.0 through 5.0.19, from 4.9 through 4.9.23, from 4.8 through 4.8.22, from 4.7 through 4.7.26, from 4.6 through 4.6.26, from 4.5 through 4.5.29, from 4.4 through 4.4.30, from 4.3 through 4.3.31, from 4.2 through 4.2.35, from 4.1 through 4.1.38.
+                - Affected software: wordpress 6.2
+
+
+        - Description: We noticed known vulnerabilities in the target application. They are usually related to outdated systems and expose the affected applications to the risk of unauthorized access to confidential data and possibly denial of service attacks.
+        - Recommendation: We recommend you to upgrade the affected software to the latest version in order to eliminate the risk of these vulnerabilities.
+
+
+[2] Missing security header: Content-Security-Policy
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - URL: https://seaview.gr/
+                - Evidence: Response does not include the HTTP Content-Security-Policy security header or meta tag
+
+
+        - Description: We noticed that the target application lacks the Content-Security-Policy (CSP) header in its HTTP responses. The CSP header is a security measure that instructs web browsers to enforce specific security rules, effectively preventing the exploitation of Cross-Site Scripting (XSS) vulnerabilities.
+        - Recommendation: Configure the Content-Security-Header to be sent with each HTTP response in order to apply the specific policies needed by the application.
+
+
+[3] Missing security header: Strict-Transport-Security
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - URL: https://seaview.gr/
+                - Evidence: Response headers do not include the HTTP Strict-Transport-Security header
+
+
+        - Description: We noticed that the target application lacks the HTTP Strict-Transport-Security header in its responses. This security header is crucial as it instructs browsers to only establish secure (HTTPS) connections with the web server and reject any HTTP connections.
+        - Recommendation: The Strict-Transport-Security HTTP header should be sent with each HTTPS response. The syntax is as follows: `Strict-Transport-Security: max-age=&lt;seconds>[; includeSubDomains]` The parameter `max-age` gives the time frame for requirement of HTTPS in seconds and should be chosen quite high, e.g. several months. A value below 7776000 is considered as too low by this scanner check. The flag `includeSubDomains` defines that the policy applies also for sub domains of the sender of the response.
+
+
+[4] Missing security header: Referrer-Policy
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - URL: https://seaview.gr/
+                - Evidence: Response headers do not include the Referrer-Policy HTTP security header as well as the <meta> tag with name 'referrer' is not present in the response.
+
+
+        - Description: We noticed that the target application's server responses lack the <code>Referrer-Policy</code> HTTP header, which controls how much referrer information the browser will send with each request originated from the current web application.
+        - Recommendation: The Referrer-Policy header should be configured on the server side to avoid user tracking and inadvertent information leakage. The value `no-referrer` of this header instructs the browser to omit the Referer header entirely.
+
+
+[5] Missing security header: X-Content-Type-Options
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - URL: https://seaview.gr/
+                - Evidence: Response headers do not include the X-Content-Type-Options HTTP security header
+
+
+        - Description: We noticed that the target application's server responses lack the <code>X-Content-Type-Options</code> header. This header is particularly important for preventing Internet Explorer from reinterpreting the content of a web page (MIME-sniffing) and thus overriding the value of the Content-Type header.
+        - Recommendation: We recommend setting the X-Content-Type-Options header such as `X-Content-Type-Options: nosniff`.
+
+
+[6] Server software and technology found
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - Software / Version: Facebook Pixel 2.9.154
+                - Category: Analytics
+
+        - Evidence 2:
+                - Software / Version: FancyBox 3.5.7
+                - Category: JavaScript libraries
+
+        - Evidence 3:
+                - Software / Version: Google Analytics
+                - Category: Analytics
+
+        - Evidence 4:
+                - Software / Version: Google Font API
+                - Category: Font scripts
+
+        - Evidence 5:
+                - Software / Version: jQuery UI 1.11.1
+                - Category: JavaScript libraries
+
+        - Evidence 6:
+                - Software / Version: MySQL
+                - Category: Databases
+
+        - Evidence 7:
+                - Software / Version: Nginx
+                - Category: Web servers, Reverse proxies
+
+        - Evidence 8:
+                - Software / Version: PHP
+                - Category: Programming languages
+
+        - Evidence 9:
+                - Software / Version: Google Tag Manager
+                - Category: Tag managers
+
+        - Evidence 10:
+                - Software / Version: jQuery CDN
+                - Category: CDN
+
+        - Evidence 11:
+                - Software / Version: Contact Form 7 5.8.3
+                - Category: WordPress plugins
+
+        - Evidence 12:
+                - Software / Version: jQuery Migrate 3.4.0
+                - Category: JavaScript libraries
+
+        - Evidence 13:
+                - Software / Version: core-js 3.19.1
+                - Category: JavaScript libraries
+
+        - Evidence 14:
+                - Software / Version: Isotope
+                - Category: JavaScript libraries
+
+        - Evidence 15:
+                - Software / Version: jQuery 3.5.1
+                - Category: JavaScript libraries
+
+        - Evidence 16:
+                - Software / Version: Open Graph
+                - Category: Miscellaneous
+
+        - Evidence 17:
+                - Software / Version: Polyfill 3
+                - Category: JavaScript libraries
+
+        - Evidence 18:
+                - Software / Version: Webpack
+                - Category: Miscellaneous
+
+        - Evidence 19:
+                - Software / Version: Module Federation
+                - Category: Miscellaneous
+
+        - Evidence 20:
+                - Software / Version: FlexSlider
+                - Category: Widgets
+
+        - Evidence 21:
+                - Software / Version: WordPress 6.2
+                - Category: CMS, Blogs
+
+        - Evidence 22:
+                - Software / Version: reCAPTCHA
+                - Category: Security
+
+        - Evidence 23:
+                - Software / Version: jsDelivr
+                - Category: CDN
+
+        - Evidence 24:
+                - Software / Version: Osano
+                - Category: Cookie compliance
+
+        - Evidence 25:
+                - Software / Version: Plesk
+                - Category: Hosting panels
+
+        - Evidence 26:
+                - Software / Version: RateParity
+                - Category: Widgets
+
+        - Evidence 27:
+                - Software / Version: RSS
+                - Category: Miscellaneous
+
+
+        - Description: We noticed that server software and technology details are exposed, potentially aiding attackers in tailoring specific exploits against identified systems and versions.
+        - Recommendation: We recommend you to eliminate the information which permits the identification of software platform, technology, server and operating system: HTTP server headers, HTML meta information, etc.
+
+
+[7] Robots.txt file found
+        - Risk Level: 1 (Low)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - URL: https://seaview.gr/robots.txt
+
+
+        - Description: We found the robots.txt on the target server. This file instructs web crawlers what URLs and endpoints of the web application they can visit and crawl. Website administrators often misuse this file while attempting to hide some web pages from the users.
+        - Recommendation: We recommend you to manually review the entries from robots.txt and remove the ones which lead to sensitive locations in the website (ex. administration panels, configuration files, etc).
+
+
+[8] Security.txt file is missing
+        - Risk Level: 0 (Info)
+
+        Vulnerability Details:
+        - Evidence 1:
+                - URL: Missing: https://seaview.gr/.well-known/security.txt
+
+
+        - Description: We have noticed that the server is missing the security.txt file, which is considered a good practice for web security. It provides a standardized way for security researchers and the public to report security vulnerabilities or concerns by outlining the preferred method of contact and reporting procedures.
+        - Recommendation: We recommend you to implement the security.txt file according to the standard, in order to allow researchers or users report any security issues they find, improving the defensive mechanisms of your server.
+
+
+[9] Website is accessible.
+[10] Nothing was found for client access policies.
+[11] Nothing was found for use of untrusted certificates.
+[12] Nothing was found for enabled HTTP debug methods.
+[13] Nothing was found for secure communication.
+[14] Nothing was found for directory listing.
+[15] Nothing was found for domain too loose set for cookies.
+[16] Nothing was found for HttpOnly flag of cookie.
+[17] Nothing was found for Secure flag of cookie.
+[18] Nothing was found for unsafe HTTP header Content Security Policy.
+
++----------------- TEST summary -----------------+
+|                                                |
+|  URL: https://seaview.gr/                      |
+|  High Risk Findings: 0                         |
+|  Medium Risk Findings: 1                       |
+|  Low Risk Findings: 6                          |
+|  Info Risk Findings: 11                        |
+|  Start time: 2024-04-20 22:27:39               |
+|  End time: 2024-04-20 22:28:20                 |
+|                                                |
++------------------------------------------------+
+
+
+[{'port': 21, 'protocol': 'tcp', 'service': 'ftp'}, {'port': 25, 'protocol': 'tcp', 'service': 'smtp'}, {'port': 53, 'protocol': 'tcp', 'service': 'domain'}, {'port': 80, 'protocol': 'tcp', 'service': 'http'}, {'port': 106, 'protocol': 'tcp', 'service': 'pop3pw'}, {'port': 110, 'protocol': 'tcp', 'service': 'pop3'}, {'port': 135, 'protocol': 'tcp', 'service': 'msrpc'}, {'port': 143, 'protocol': 'tcp', 'service': 'imap'}, {'port': 443, 'protocol': 'tcp', 'service': 'https'}, {'port': 465, 'protocol': 'tcp', 'service': 'smtps'}, {'port': 587, 'protocol': 'tcp', 'service': 'submission'}, {'port': 993, 'protocol': 'tcp', 'service': 'imaps'}, {'port': 995, 'protocol': 'tcp', 'service': 'pop3s'}, {'port': 2000, 'protocol': 'tcp', 'service': 'cisco-sccp'}, {'port': 3306, 'protocol': 'tcp', 'service': 'mysql'}, {'port': 5060, 'protocol': 'tcp', 'service': 'sip'}, {'port': 5555, 'protocol': 'tcp', 'service': 'freeciv'}, {'port': 8010, 'protocol': 'tcp', 'service': 'xmpp'}, {'port': 8443, 'protocol': 'tcp', 'service': 'https-alt'}]'''
 
 
 ReportSampleWithCVE = '''

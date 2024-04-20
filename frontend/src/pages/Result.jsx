@@ -38,9 +38,7 @@ export default function Result() {
       });
   });
 
-  function isEmptyObject(obj) {
-    return Object.keys(obj).length === 0 && obj.constructor === Object;
-  }
+
 
   function handleDataVariables() {
     // get A record IPs object keys
