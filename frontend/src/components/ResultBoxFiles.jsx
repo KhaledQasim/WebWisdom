@@ -23,7 +23,7 @@ const ResultBoxFiles = ({
       data.value.data[2]?.files !== null &&
       !isEmptyObject(data.value.data[2]?.files)
     ) {
-      files.value = data.value.data[2].files;
+      files.value = data.value.data[2].files[0].data;
     } else {
       files.value = false;
     }

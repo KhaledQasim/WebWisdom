@@ -6,6 +6,8 @@ import { signal } from "@preact/signals-react";
 import Loading from "./Loading";
 
 const nmap = signal();
+const nmapMysql = signal();
+
 const loading = signal(true);
 
 const ResultBoxWithIP = ({
@@ -21,12 +23,25 @@ const ResultBoxWithIP = ({
   useSignals();
 
   useSignalEffect(() => {
-    if (data.value.data[4]?.nmap !== null && !isEmptyObject(data.value.data[4]?.nmap)) {
-      nmap.value = data.value.data[4].nmap;
+    if (
+      data.value.data[4]?.nmap !== null &&
+      !isEmptyObject(data.value.data[4]?.nmap)
+    ) {
+      nmap.value = data.value.data[4];
     } else {
       nmap.value = false;
     }
 
+   
+    const isThereMysql = data.value.data[4].nmap[1] === undefined;
+    if (!isThereMysql) {
+      nmapMysql.value = nmap.value.nmap[1].VulnerabilityFound;
+    } else {
+    
+      nmapMysql.value = false;
+    }
+
+    
     loading.value = false;
   });
   function isEmptyObject(obj) {
@@ -45,8 +60,8 @@ const ResultBoxWithIP = ({
         <div className="my-5 px-4 text-base ">{MainContent}</div>
 
         {/* Displaying the A record IPs */}
-        {ipKeys.value.map((key) => (
-          <div key={key}>
+        {ipKeys.value.map((key, index) => (
+          <div key={index}>
             <div className="text-accent px-4 text-xl grid gap-1">
               A record IPs
               <div className="border-b-2 border-base-content" />
@@ -86,10 +101,12 @@ const ResultBoxWithIP = ({
         {nmap.value ? (
           <>
             <div className="text-accent px-4 text-xl grid gap-1">
-              Open Ports - These ports are used to communicate with the server, if there is a service port that does not represent the required public functionality of the webserver, then it must be investigated and closed if deemed malicious.
-           
-              {nmap.value.map((key) => (
-                <div key={key.port}>
+              Open Ports - These ports are used to communicate with the server,
+              if there is a service port that does not represent the required
+              public functionality of the webserver, then it must be
+              investigated and closed if deemed malicious.
+              {nmap.value.nmap[0].data?.map((key, index) => (
+                <div key={index}>
                   <div className="border-b-2 border-base-content" />
                   <StateOfBox
                     content={key.port + "/" + key.protocol}
@@ -98,6 +115,18 @@ const ResultBoxWithIP = ({
                   />
                 </div>
               ))}
+              {nmapMysql.value ? (
+                <>
+                  <div className="border-b-2 border-base-content" />
+                  <StateOfBox
+                    content={nmapMysql.value.detail}
+                    good={"warning"}
+                    subHeading={nmapMysql.value.RiskLevel}
+                  />
+                </>
+              ) : (
+                <></>
+              )}
             </div>
           </>
         ) : (

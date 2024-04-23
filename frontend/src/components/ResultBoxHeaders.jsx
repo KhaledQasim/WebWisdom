@@ -23,11 +23,11 @@ const ResultBoxHeaders = ({
       data.value.data[1]?.headers !== null &&
       !isEmptyObject(data.value.data[1]?.headers)
     ) {
-      headers.value = data.value.data[1].headers;
+      headers.value = data.value.data[1].headers[0].data;
     } else {
       headers.value = false;
     }
-
+    
     loading.value = false;
   });
   function isEmptyObject(obj) {

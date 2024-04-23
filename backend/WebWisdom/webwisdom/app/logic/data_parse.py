@@ -4,6 +4,61 @@ from . import nmap
 import re
 
 
+vulnerable_websites = """
+www.vanheusen.com - has bad cookies and vulnerable software
+vanheusen.com - only difference is that the secure flag cookie is present on this domain
+
+seaview.gr  - has vulnerable software
+aston.ac.uk          -  use to have vulnerable software but got patched
+waaark.com   - has vulnerable software
+"""
+
+
+def parse_risk_level_in_from_str_to_int_headers(risk_level_list):
+    total_risk = []
+
+    if risk_level_list:
+        for x in risk_level_list:
+            if '1' in x:
+                total_risk.append(1)
+            if '2' in x:
+                total_risk.append(2)
+            if '3' in x:
+                total_risk.append(3)
+
+    return {"total_risk_headers": total_risk}
+
+
+def parse_risk_level_in_from_str_to_int_files(risk_level_list):
+    total_risk = []
+
+    if risk_level_list:
+        for x in risk_level_list:
+            if '1' in x:
+                total_risk.append(1)
+            if '2' in x:
+                total_risk.append(2)
+            if '3' in x:
+                total_risk.append(3)
+
+    return {"total_risk_files": total_risk}
+
+
+def parse_risk_level_in_from_str_to_int_cookies(risk_level_list):
+    total_risk = []
+
+    if risk_level_list:
+        for x in risk_level_list:
+            if '1' in x:
+                total_risk.append(1)
+            if '2' in x:
+                total_risk.append(2)
+            if '3' in x:
+                total_risk.append(3)
+
+    return {"total_risk_cookies": total_risk}
+
+
 def get_vulnerability_report(url):
 
     command = f'ptt -q --nocolor run website_scanner {url}'
@@ -63,6 +118,10 @@ def parse_vulnerability_report_for_technologies(report_text: str):
 
     # Removing any empty dictionaries at the end of the list
     technologies = [technology for technology in technologies if technology]
+
+    if not technologies:
+        technologies = None
+
     return technologies
 
 
@@ -71,6 +130,8 @@ def parse_vulnerability_report_for_headers(report_text: str):
     pattern = r"Missing security header: (\S.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?Vulnerability Details:\s*(?:- Evidence \d+:\s*\n\s*- URL: (.*?)\n\s*- Evidence: (.*?)\n)?\s*- Description: (.*?)\n\s*- Recommendation: (.*?)\n"
     results = []
     matches = re.finditer(pattern, report_text, re.DOTALL)
+    total_risk = []
+    data = []
 
     for match in matches:
         header, risk_level, url, evidence, description, recommendation = match.groups()
@@ -84,7 +145,8 @@ def parse_vulnerability_report_for_headers(report_text: str):
                 "EvidenceDetail": evidence.strip() if evidence else "No evidence detail provided"
             }
         }
-        results.append(result)
+        total_risk.append(risk_level.strip())
+        data.append(result)
 
     pattern = r"Unsafe security header: (\S.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?Vulnerability Details:\s*(?:- Evidence \d+:\s*\n\s*- URL: (.*?)\n\s*- Evidence: (.*?)\n)?\s*- Description: (.*?)\n\s*- Recommendation: (.*?)\n"
     matches = re.finditer(pattern, report_text, re.DOTALL)
@@ -101,11 +163,15 @@ def parse_vulnerability_report_for_headers(report_text: str):
                 "EvidenceDetail": evidence.strip() if evidence else "No evidence detail provided"
             }
         }
-        results.append(result)
+        total_risk.append(risk_level.strip())
+        data.append(result)
 
     # Parsing the provided text
     if not report_text.strip():
         raise HTTPException(status_code=400, detail="No text provided")
+
+    results.append({"data": data})
+    results.append(parse_risk_level_in_from_str_to_int_headers(total_risk))
 
     return results
 
@@ -114,6 +180,8 @@ def parse_vulnerability_report_for_txt_files(report_text: str):
     security_txt_pattern = r"Security\.txt file.*?\n\s*- Risk Level:\s*(\d+ \(\w+\))\n.*?Description:\s*(.*?)\n\s*- Recommendation:\s*(.*?)\n"
     robots_txt_pattern = r"Robots\.txt file.*?\n\s*- Risk Level:\s*(\d+ \(\w+\))\n.*?Description:\s*(.*?)\n\s*- Recommendation:\s*(.*?)\n"
 
+    data = []
+    total_risk = []
     results = []
 
     # Search for Security.txt file details
@@ -121,23 +189,31 @@ def parse_vulnerability_report_for_txt_files(report_text: str):
         security_txt_pattern, report_text, re.DOTALL)
     if security_txt_match:
         risk_level, description, recommendation = security_txt_match.groups()
-        results.append({
+        data.append({
             "File": "Security.txt",
             "RiskLevel": risk_level.strip(),
             "Description": description.strip(),
             "Recommendation": recommendation.strip()
         })
+        total_risk.append(risk_level.strip())
 
     # Search for Robots.txt file details
     robots_txt_match = re.search(robots_txt_pattern, report_text, re.DOTALL)
     if robots_txt_match:
         risk_level, description, recommendation = robots_txt_match.groups()
-        results.append({
+        data.append({
             "File": "Robots.txt",
             "RiskLevel": risk_level.strip(),
             "Description": description.strip(),
             "Recommendation": recommendation.strip()
         })
+        total_risk.append(risk_level.strip())
+
+    if not data:
+        data = None
+
+    results.append({"data": data})
+    results.append(parse_risk_level_in_from_str_to_int_files(total_risk))
 
     return results
 
@@ -154,6 +230,8 @@ def parse_vulnerability_report_for_insecure_cookie(report_text: str):
         r"\s*- Recommendation: (.*?)\n"
     )
 
+    data = []
+    total_risk = []
     results = []
     matches = re.finditer(pattern, report_text, re.DOTALL | re.IGNORECASE)
 
@@ -170,7 +248,14 @@ def parse_vulnerability_report_for_insecure_cookie(report_text: str):
                 "EvidenceDetail": evidence.strip() if evidence else "No evidence detail provided"
             }
         }
-        results.append(result)
+        total_risk.append(risk_level.strip())
+        data.append(result)
+
+    if not data:
+        data = None
+
+    results.append({"data": data})
+    results.append(parse_risk_level_in_from_str_to_int_cookies(total_risk))
 
     return results
 
@@ -207,14 +292,136 @@ def parse_server_side_vulnerabilities(report_text: str):
                 "affected_software": affected_software.strip()
             })
 
+        # retrieve the cvss scores and convert them to one of our weighted vulnerabilities score 1 or 2 or 3
+
+        if (vulnerabilities):
+            total_risk = []
+            for x in vulnerabilities:
+                if 0 <= x["CVSS"] <= 2.9:
+                    total_risk.append(1)
+
+                if 3 <= x["CVSS"] <= 6.9:
+                    total_risk.append(3)
+
+                if 7 <= x["CVSS"] <= 10:
+                    total_risk.append(4)
+
         return {
             "title": "Vulnerabilities found for server-side software",
-            "risk_level": risk_level,
+            "total_risk_server_side_vulnerabilities": total_risk,
             "cve_list": vulnerabilities
         }
 
 
-def formate_report(url):
+def find_unique_list(data, unique_key):
+    """recursive function to locate the unique array that contains the vulnerability scores
+
+    Args:
+        data (list): list of any size and any child lists and dictionaries
+        unique_key (string): the unique name of a list you want to retrieve from the data
+
+    Returns:
+        list[int]: list of integers
+        None: if not list is found matching the unique_key then None is returned
+    """
+    
+    
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if key == unique_key:
+                return value
+            elif value is not None and isinstance(value, (dict, list)):
+                result = find_unique_list(value, unique_key)
+                if result is not None:
+                    return result
+
+    elif isinstance(data, list):
+        for item in data:
+            if item is not None:
+                result = find_unique_list(item, unique_key)
+                if result is not None:
+                    return result
+
+    return None
+
+
+
+
+def get_vulnerability_scores_from_report_and_calculate(report,ssl):
+    try:
+        total_risk = []
+        data_total_risk = []
+        
+        total_risk.append(
+            find_unique_list(report, "total_risk_mysql"))
+       
+        total_risk.append(
+            find_unique_list(report, "total_risk_headers"))
+        total_risk.append(find_unique_list(report, "total_risk_files"))
+        total_risk.append(find_unique_list(report, "total_risk_cookies"))
+        total_risk.append(find_unique_list(
+            report, "total_risk_server_side_vulnerabilities"))
+        
+        if(ssl):
+            print("yes ssl")
+        else:
+            print("ssl is false")
+            total_risk.append([3])
+         
+         
+         
+         
+        print("this is the",report)
+        
+        if total_risk is None:
+            print("total_risk is None")
+            return {"vulnerability_score": "error in calculating score"}
+        
+        if total_risk is not None:
+            for list in total_risk:
+                if list is not None:
+                    for int in list:
+                        data_total_risk.append(int)
+
+        print("vulnerability score", data_total_risk,
+              "end of vulnerability score")
+        result = calculate_security_score_from_list(data_total_risk)
+        print(result)
+        return result
+    except Exception as e:
+        print("error in get_vulnerability_scores_from_report_and_calculate", e)
+        return {"vulnerability_score": "error in calculating score"}
+
+
+def calculate_security_score_from_list(data):
+    try:
+        if data is None:
+            return{"security_score_error":"data can not be none"}  
+
+        
+        
+        score_map = {1: 3, 2: 2, 3: 1, 4:0.5}  # Mapping severity to weight (inverted)
+        total_weight = sum(score_map[v] for v in data if v in score_map)
+        total_vulns = sum(1 for v in data if v in score_map)
+
+        if total_vulns == 0:
+            raise HTTPException(
+                status_code=400, detail="Vulnerability can not total to 0")
+
+        weighted_average = total_weight / total_vulns
+
+        # 10 - 1 then adding a +1 at the end ensure that our range will be from 1 to 10 , the +1 is also used to avoid zero scores making the minium possible score a 1
+        # 3 - 0.5 represents the span of the range from between the lowest and highest weights post adjustment 
+        score = round((weighted_average - 0.5) * (10 - 1) / (3 - 0.5) + 1)
+        score = max(1, min(score, 10))
+
+        return {"security_score": score,"security_score_data":data}
+    except Exception as e:
+        print("error in calculate_security_score_from_list: ", e)
+        return{"error":"error in calculating security score"}
+
+
+def formate_report(url,ssl):
     print("urlhere", url)
     report_text = get_vulnerability_report(url)
     technologies = parse_vulnerability_report_for_technologies(report_text)
@@ -225,10 +432,16 @@ def formate_report(url):
     nmap_scan_result = nmap_object.nmap_scan()
     server_side_vulnerabilities = parse_server_side_vulnerabilities(
         report_text)
-    return [{"technologies": technologies}, {"headers": headers}, {"files": files}, {"cookies": cookies}, {"nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
+    report = [{"technologies": technologies}, {"headers": headers}, {"files": files}, {"cookies": cookies}, {
+        "nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
+
+    vulnerability_score = get_vulnerability_scores_from_report_and_calculate(
+        report,ssl)
+    report.append(vulnerability_score)
+    return report
 
 
-def formate_report_test():
+def formate_report_test(ssl):
     technologies = parse_vulnerability_report_for_technologies(ReportSample)
     headers = parse_vulnerability_report_for_headers(ReportSample)
     files = parse_vulnerability_report_for_txt_files(ReportSample)
@@ -237,7 +450,16 @@ def formate_report_test():
     nmap_scan_result = nmap_object.nmap_scan_test()
     server_side_vulnerabilities = parse_server_side_vulnerabilities(
         SeaViewReportSample)
-    return [{"technologies": technologies}, {"headers": headers}, {"files": files}, {"cookies": cookies}, {"nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
+
+    report = [{"technologies": technologies}, {"headers": headers}, {"files": files}, {
+        "cookies": cookies}, {"nmap": nmap_scan_result}, {"serverVulnerabilities": server_side_vulnerabilities}]
+    vulnerability_score = get_vulnerability_scores_from_report_and_calculate(
+        report,ssl)
+    report.append(vulnerability_score)
+    
+    
+    
+    return report
 
 
 SeaViewReportSample = '''
@@ -280,9 +502,6 @@ SeaViewReportSample = '''
                 - Summary: Twig is a template language for PHP. Versions 1.x prior to 1.44.7, 2.x prior to 2.15.3, and 3.x prior to 3.4.3 encounter an issue when the filesystem loader loads templates for which the name is a user input. It is possible to use the `source` or `include` statement to read arbitrary files from outside the templates' directory when using a namespace like `@somewhere/../some.file`. In such a case, validation is bypassed. Versions 1.44.7, 2.15.3, and 3.4.3 contain a fix for validation of such template names. There are no known workarounds aside from upgrading.
                 - Affected software: drupal 9
 
-
-        - Description: We noticed known vulnerabilities in the target application. They are usually related to outdated systems and expose the affected applications to the risk of unauthorized access to confidential data and possibly denial of service attacks.
-        - Recommendation: We recommend you to upgrade the affected software to the latest version in order to eliminate the risk of these vulnerabilities.
 
         - Risk Level: 2 (Medium)
 

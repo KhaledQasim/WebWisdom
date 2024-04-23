@@ -34,13 +34,26 @@ export default function Results() {
     navigate(`/result/${id}`);
   }
 
-  function handlePenTestButton(){
-    navigate("/")
+  function handlePenTestButton() {
+    navigate("/");
   }
 
-  function getURL(result){
-    let parsedData = JSON.parse(result)
-    return JSON.stringify(parsedData.connection_and_records.url).replace(/"/g, '');
+  function getURL(result) {
+    let parsedData = JSON.parse(result);
+    return JSON.stringify(parsedData.connection_and_records.url).replace(
+      /"/g,
+      ""
+    );
+  }
+
+  function getScore(result) {
+    let parsedData = JSON.parse(result);
+    const isThereScore = parsedData.data[6]?.security_score === undefined;
+    if (!isThereScore) {
+      return JSON.parse(parsedData.data[6]?.security_score)+"/10";
+    }
+
+    return "N/A";
   }
 
   return (
@@ -55,7 +68,12 @@ export default function Results() {
             <>
               <div className="mt-6 text-xl text-warning">
                 No previous pen test results!
-                <button className="btn btn-primary ml-4" onClick={handlePenTestButton}>Start A Pen Test</button>
+                <button
+                  className="btn btn-primary ml-4"
+                  onClick={handlePenTestButton}
+                >
+                  Start A Pen Test
+                </button>
               </div>
             </>
           ) : (
@@ -68,16 +86,17 @@ export default function Results() {
                       <tr>
                         <th>Pen Test ID</th>
                         <th>URL</th>
+                        <th>Score</th>
                         <th>Created At</th>
                         <th>Go To Result</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.value.map((item) => (
-                        
                         <tr key={item.id}>
                           <th>{item.id}</th>
                           <td>{getURL(item.result)}</td>
+                          <td>{getScore(item.result)}</td>
                           <td>{item.created_at}</td>
                           <td>
                             <button

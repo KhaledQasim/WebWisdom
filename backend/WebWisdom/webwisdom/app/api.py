@@ -7,12 +7,12 @@ from bs4 import BeautifulSoup
 import requests
 from ..database import schemas
 from .logic import data_parse
-from typing import Annotated
+from typing import Annotated, List
 from ..routers import auth
 from sqlalchemy.orm import Session
 import json
 from .logic import nmap
-
+from ..database.schemas import SecurityData
 
 router = APIRouter(
     prefix="/api",
@@ -22,19 +22,26 @@ router = APIRouter(
 
 
 
-@router.post("/test-parse")
-async def Test_parse(db: Session = Depends(auth.get_db)):
-
-     
-    data = data_parse.formate_report_test()
+@router.get("/test-parse")
+async def Test_parse(user: Annotated[schemas.User, Depends(auth.get_current_active_user)],db: Session = Depends(auth.get_db)):
+    try:
+        user_info = await auth.get_current_active_user(user)
+        
+    except Exception as e:
+        print("Error in Start_scan first try block",e)
+        raise HTTPException(status_code=401,detail="Unauthorized")
+    
+    
+    ssl = False
+    data = data_parse.formate_report_test(ssl)
     result = {
     
         "connection_and_records": {
             "port_80": True,
-            "port_443": True,
+            "port_443": False,
             "message": "",
             "url": "testurl.com",
-            "ssl": True,
+            "ssl": False,
             "IP_1": "35.44.22.33"
         },
         "data": data
@@ -53,10 +60,10 @@ async def Test_parse(db: Session = Depends(auth.get_db)):
         "id":int(saved_result.id),
         "connection_and_records": {
             "port_80": True,
-            "port_443": True,
+            "port_443": False,
             "message": "",
             "url": "testurl.com",
-            "ssl": True,
+            "ssl": False,
             "IP_1": "35.44.22.33"
         },
         "data": data
@@ -67,6 +74,12 @@ async def Test_parse(db: Session = Depends(auth.get_db)):
 def test_nmap():
     nmap_object = nmap.nmap("https://yousefqasim.uk/")
     nmap_scan_result = nmap_object.nmap_scan()
+    return {"nmap":nmap_scan_result}
+
+@router.get("/test-nmap-offline")
+def test_nmap():
+    nmap_object = nmap.nmap("https://yousefqasim.uk/")
+    nmap_scan_result = nmap_object.nmap_scan_test()
     return {"nmap":nmap_scan_result}
 
 
@@ -91,7 +104,11 @@ async def Start_scan(User_provided_url: schemas.URL, user: Annotated[schemas.Use
         if(result_check_site["port_80"]==False and result_check_site["port_443"] == False):
             raise HTTPException(status_code=405,detail="Site is down or does not exist please check the url and that the site is accessible and running!") 
         
-        data = data_parse.formate_report(User_provided_url.url)
+        ssl = True
+        if(result_check_site["ssl"] == False):
+            ssl = False
+        
+        data = data_parse.formate_report(User_provided_url.url,ssl)
 
         result = {
             "connection_and_records": result_check_site,
@@ -126,14 +143,20 @@ async def Start_scan(User_provided_url: schemas.URL, user: Annotated[schemas.Use
     
     
     
+
+
+@router.post("/calculate-security-score/")
+async def calculate_security_score(data: SecurityData):
+   
+    return data_parse.calculate_security_score_from_list(data.data)
     
     
     
     
     
-    
-    
-    
+@router.get("/get-vulnerability-score-test")
+async def get_vulnerability_score_test():
+    return data_parse.get_vulnerability_scores_from_report_and_calculate()
     
     
     

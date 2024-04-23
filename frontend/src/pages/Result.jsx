@@ -57,7 +57,7 @@ export default function Result() {
         </>
       ) : (
         <>
-          <ResultSummary content={"result summary content"} />
+          <ResultSummary data={resultData} />
 
           {/* Box for connection records */}
           <ResultBoxWithIP

@@ -3,7 +3,7 @@ const StateOfBox = ({ good, content,subHeading }) => {
   switch (good) {
     case "neutral":
       component = (
-        <div role="alert" className="alert flex justify-between items-center w-full">
+        <div role="alert" className="alert flex justify-between items-center ">
       
           <span className="text-base whitespace-pre-line">{content}</span>
           <span className="text-base ">{subHeading}</span>
@@ -12,7 +12,7 @@ const StateOfBox = ({ good, content,subHeading }) => {
       break;
     case "bad":
       component = (
-        <div role="alert" className="alert alert-error mb-4 flex justify-between items-center w-full">
+        <div role="alert" className="alert alert-error mb-4 flex justify-between items-center ">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="stroke-current shrink-0 h-6 w-6"
@@ -33,7 +33,7 @@ const StateOfBox = ({ good, content,subHeading }) => {
       break;
     case "warning":
       component = (
-        <div role="alert" className="alert alert-warning mb-4 flex justify-between items-center w-full">
+        <div role="alert" className="alert alert-warning mb-4 flex justify-between items-center overflow-auto">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="stroke-current shrink-0 h-6 w-6"

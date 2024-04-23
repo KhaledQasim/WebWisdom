@@ -23,7 +23,7 @@ const ResultBoxCookies = ({
       data.value.data[3]?.cookies !== null &&
       !isEmptyObject(data.value.data[3]?.cookies)
     ) {
-      cookies.value = data.value.data[3].cookies;
+      cookies.value = data.value.data[3].cookies[0].data;
     } else {
       cookies.value = false;
     }

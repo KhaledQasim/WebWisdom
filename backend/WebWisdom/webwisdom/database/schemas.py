@@ -1,5 +1,5 @@
 # Declare schemas using pydantic, this allows a uniform data , apply validation to our data, and convert between json and python objects
-from typing import Annotated, Any
+from typing import Annotated, Any, List
 from enum import Enum
 from datetime import date
 from pydantic.functional_validators import AfterValidator
@@ -91,3 +91,9 @@ class Result(Result):
 
     class ConfigDict:
         result_attributes = True
+
+
+
+
+class SecurityData(BaseModel):
+    data: List[int]

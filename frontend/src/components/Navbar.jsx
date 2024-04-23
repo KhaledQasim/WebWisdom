@@ -14,7 +14,7 @@ export default function Navbar({ user }) {
           <img src={Logo} alt="Logo" className="w-16 rounded-xl" />
         </Link>
         <Link to={"/"}>
-          <div className="text-lg text-neutral-content">WebWisdom</div>
+          <div className="text-lg text-base-content">WebWisdom</div>
         </Link>
       </div>
       <div className="flex-none space-x-2">
