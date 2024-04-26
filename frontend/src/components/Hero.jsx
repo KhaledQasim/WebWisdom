@@ -43,14 +43,16 @@ export default function Hero() {
       .then(function response(response) {
         disabled.value = false;
         isLoading.value = false;
-
-        id.value = response.data.id
+        const index = response.data.data.findIndex(item =>  Object.prototype.hasOwnProperty.call(item,'id'));
+        id.value = response.data.data[index].id
+        // print("id value of test",id.value," index of id",index," data associated with getting id: ",response.data.data)
         navigate(`/result/${id}`);
       
       })
       .catch(function error(error) {
         disabled.value = false;
         isLoading.value = false;
+        console.log("error in hero test scan: ",error)
         errorMessage.value = String(error.response.data.detail)
         console.error("error in Hero page",error);
       });

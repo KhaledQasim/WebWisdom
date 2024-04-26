@@ -1,23 +1,34 @@
 import subprocess
 import re
+import asyncio
 
+from fastapi import HTTPException
 
 class nmap:
     def __init__(self, url):
         self.url = str(url)
 
-    def nmap_scan(self):
+    async def nmap_scan(self):
         parsed_url = self.url
         parsed_url = parsed_url.replace("http://", "")
         parsed_url = parsed_url.replace("https://", "")
         parsed_url = parsed_url.rstrip('/')
 
         command = f'nmap {parsed_url}'
-        command_result = subprocess.run(
-            command, capture_output=True, text=True, shell=True)
+   
+
+        process = await asyncio.create_subprocess_shell(
+            command, stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
+        stdout , stderr = await process.communicate()
+        print(stdout.decode())
+        if stderr:
+            print("Error in ptt scan:", stderr.decode())
+            raise HTTPException(status_code=400, detail="nmap scan failed")
+        
+        
 
         pattern = r"(\d+)/(\S+)\s+open\s+(\S+)"
-        matches = re.finditer(pattern, command_result.stdout)
+        matches = re.finditer(pattern, stdout.decode())
 
         results = []
         for match in matches:
@@ -41,6 +52,7 @@ class nmap:
                             "detail": "MySQL database service should not be publicly exposed since it likely stores sensitive information about the site!",
                             "RiskLevel": "2"
                         }})
+                        results.append({"total_risk_mysql":[4]})
 
         print(results)
         return results
@@ -64,7 +76,7 @@ class nmap:
 
         pattern = r"(\d+)/(\S+)\s+open\s+(\S+)"
         matches = re.finditer(pattern, sample_output)
-        data = []
+       
         results = []
         for match in matches:
             port, protocol, service = match.groups()
@@ -73,24 +85,25 @@ class nmap:
                 "protocol": protocol,
                 "service": service
             }
-            data.append(result)
+            results.append(result)
 
 
-        results.append({"data":data})
+      
         
-        if not data:
+        if not results:
             print("nmap scan could not return open ports.")
-
-        for x in data:
-            if ('port' in x and 'service' in x):
-                if (x["port"] == 3306 and x["service"].lower() == "mysql".lower()):
-                    print("MySQL found")
-                    results.append({"VulnerabilityFound": {
-                        "detail": "MySQL database service should not be publicly exposed since it likely stores sensitive information about the site!",
-                        "RiskLevel": "Risk Level: 2"
-                    }})
-                    results.append({"total_risk_mysql":[2]})
+            results = None
+        else:   
+            for x in results:
+                if ('port' in x and 'service' in x):
+                    if (x["port"] == 3306 and x["service"].lower() == "mysql".lower()):
+                        print("MySQL found")
+                        results.append({"VulnerabilityFound": {
+                            "detail": "MySQL database service should not be publicly exposed since it likely stores sensitive information about the site!",
+                            "RiskLevel": "Risk Level: 2"
+                        }})
+                        results.append({"total_risk_mysql":[4]})
 
         
-
+        print(results)
         return results

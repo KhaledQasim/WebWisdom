@@ -40,17 +40,32 @@ export default function Results() {
 
   function getURL(result) {
     let parsedData = JSON.parse(result);
-    return JSON.stringify(parsedData.connection_and_records.url).replace(
+    const index = parsedData.findIndex(item=> item.test === "connection_and_records" );
+    return JSON.stringify(parsedData[index].report.url).replace(
       /"/g,
       ""
     );
   }
 
-  function getScore(result) {
+  function getScorePTT(result) {
     let parsedData = JSON.parse(result);
-    const isThereScore = parsedData.data[6]?.security_score === undefined;
+    const index = parsedData.findIndex(item=> item.test === "PTT" );
+
+    const isThereScore = parsedData[index]?.score.security_score === undefined;
     if (!isThereScore) {
-      return JSON.parse(parsedData.data[6]?.security_score)+"/10";
+      return JSON.stringify(parsedData[index]?.score.security_score)+"/10";
+    }
+
+    return "N/A";
+  }
+
+  function getScoreZAP(result) {
+    let parsedData = JSON.parse(result);
+    const index = parsedData.findIndex(item=> item.test === "ZAP" );
+
+    const isThereScore = parsedData[index]?.score.security_score === undefined;
+    if (!isThereScore) {
+      return JSON.stringify(parsedData[index]?.score.security_score)+"/10";
     }
 
     return "N/A";
@@ -86,7 +101,8 @@ export default function Results() {
                       <tr>
                         <th>Pen Test ID</th>
                         <th>URL</th>
-                        <th>Score</th>
+                        <th>Base Test Score</th>
+                        <th>ZAP Test Score</th>
                         <th>Created At</th>
                         <th>Go To Result</th>
                       </tr>
@@ -96,7 +112,8 @@ export default function Results() {
                         <tr key={item.id}>
                           <th>{item.id}</th>
                           <td>{getURL(item.result)}</td>
-                          <td>{getScore(item.result)}</td>
+                          <td>{getScorePTT(item.result)}</td>
+                          <td>{getScoreZAP(item.result)}</td>
                           <td>{item.created_at}</td>
                           <td>
                             <button

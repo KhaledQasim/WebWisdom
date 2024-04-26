@@ -19,11 +19,14 @@ const ResultBoxHeaders = ({
   useSignals();
 
   useSignalEffect(() => {
+   
+    const indexPTT = data.value.findIndex((item) => item.test === "PTT");
+    
     if (
-      data.value.data[1]?.headers !== null &&
-      !isEmptyObject(data.value.data[1]?.headers)
+      data.value[indexPTT]?.report[1].headers !== null &&
+      !isEmptyObject(data.value[indexPTT]?.report[1].headers)
     ) {
-      headers.value = data.value.data[1].headers[0].data;
+      headers.value = data.value[indexPTT]?.report[1].headers[0].data;
     } else {
       headers.value = false;
     }

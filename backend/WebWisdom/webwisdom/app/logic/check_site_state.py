@@ -5,10 +5,12 @@ import ssl
 
 
 class check_site_state:
+    """Checks if a site's domain exists by searching for A records, then checks for proper use of https , returns a dictionary of the findings
+    """
     def __init__(self, site):
         self.site = str(site)
     
-    def check_site_is_online(self):
+    async def check_site_is_online(self):
         """Checks if a site has A records and if it is online via socket connections on ports 80 and 443, also checks that the ssl connection is working correctly 
 
         Args:

@@ -19,11 +19,14 @@ const ResultBoxFiles = ({
   useSignals();
 
   useSignalEffect(() => {
+    const indexPTT = data.value.findIndex((item) => item.test === "PTT");
+   
+  
     if (
-      data.value.data[2]?.files !== null &&
-      !isEmptyObject(data.value.data[2]?.files)
+      data.value[indexPTT]?.report[2].files !== null &&
+      !isEmptyObject(data.value[indexPTT]?.report[2].files)
     ) {
-      files.value = data.value.data[2].files[0].data;
+      files.value = data.value[indexPTT]?.report[2].files[0].data;
     } else {
       files.value = false;
     }

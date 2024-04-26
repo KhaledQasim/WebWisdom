@@ -19,9 +19,12 @@ const ResultBoxServerVulnerabilities = ({
   useSignals();
 
   useSignalEffect(() => {
+    const indexPTT = data.value.findIndex((item) => item.test === "PTT");
+  
 
-    if (data.value.data[5]?.serverVulnerabilities !== null &&  !isEmptyObject(data.value.data[5]?.serverVulnerabilities)) {
-      serverVulnerabilities.value = data.value.data[5].serverVulnerabilities;
+
+    if (data.value[indexPTT]?.report[5].serverVulnerabilities !== null &&  !isEmptyObject(data.value[indexPTT]?.report[5].serverVulnerabilities)) {
+      serverVulnerabilities.value = data.value[indexPTT]?.report[5].serverVulnerabilities;
     } else {
       serverVulnerabilities.value = false;
     }

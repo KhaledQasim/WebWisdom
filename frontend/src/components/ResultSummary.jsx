@@ -4,17 +4,29 @@ import { useSignals, useSignalEffect } from "@preact/signals-react/runtime";
 import { signal } from "@preact/signals-react";
 import Loading from "./Loading";
 
-const stat = signal();
+const statPTT = signal();
+const statZAP = signal();
 
 const ResultSummary = ({ content, data }) => {
   useSignals();
 
   useSignalEffect(() => {
-    const siThereStat = data.value.data[6]?.security_score === undefined;
-    if (!siThereStat) {
-      stat.value = data.value.data[6].security_score;
+    const indexZAP = data.value.findIndex((item) => item.test === "ZAP");
+    const indexPTT = data.value.findIndex((item) => item.test === "PTT");
+   
+
+    const isThereZAP = data.value[indexZAP]?.score === undefined;
+    if (!isThereZAP) {
+      statZAP.value = JSON.stringify(data.value[indexZAP]?.score?.security_score);
     } else {
-      stat.value = false;
+      statZAP.value = false;
+    }
+
+    const isTherePTT = data.value[indexPTT]?.score === undefined;
+    if (!isTherePTT) {
+      statPTT.value = JSON.stringify(data.value[indexPTT]?.score?.security_score);
+    } else {
+      statPTT.value = false;
     }
   });
 
@@ -23,13 +35,15 @@ const ResultSummary = ({ content, data }) => {
       <h1 className="text-center  text-4xl font-bold mb-4">
         Penetration Test Score
       </h1>
-      {stat.value ? (
+      {statPTT.value ? (
         <>
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-4">
             <div>
               <div className="stats shadow">
                 <div className="stat">
-                  <div className="stat-value text-primary">{stat.value}/10</div>
+                  <div className="stat-value text-primary">
+                    {statPTT.value}/10 - Base Test
+                  </div>
                 </div>
               </div>
             </div>
@@ -38,7 +52,33 @@ const ResultSummary = ({ content, data }) => {
       ) : (
         <>
           <div className="flex justify-center">
-            <div className="text-primary text-3xl">No score was available in the returned data!</div>
+            <div className="text-primary text-3xl">
+              No score was available for Base PTT test in the returned data!
+            </div>
+          </div>
+        </>
+      )}
+
+      {statZAP.value ? (
+        <>
+          <div className="flex justify-center">
+            <div>
+              <div className="stats shadow">
+                <div className="stat">
+                  <div className="stat-value text-primary">
+                    {statZAP.value}/10 - ZAP test
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex justify-center">
+            <div className="text-primary text-3xl">
+              No score was available for ZAP penetration test in the returned data!
+            </div>
           </div>
         </>
       )}

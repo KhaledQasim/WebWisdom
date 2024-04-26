@@ -19,11 +19,13 @@ const ResultBoxCookies = ({
   useSignals();
 
   useSignalEffect(() => {
+    const indexPTT = data.value.findIndex((item) => item.test === "PTT");
+  
     if (
-      data.value.data[3]?.cookies !== null &&
-      !isEmptyObject(data.value.data[3]?.cookies)
+      data.value[indexPTT]?.report[3].cookies !== null &&
+      !isEmptyObject(data.value[indexPTT]?.report[3].cookies)
     ) {
-      cookies.value = data.value.data[3].cookies[0].data;
+      cookies.value = data.value[indexPTT]?.report[3].cookies[0].data;
     } else {
       cookies.value = false;
     }

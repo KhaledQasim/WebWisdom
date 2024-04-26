@@ -19,8 +19,10 @@ const ResultBoxTechnologies = ({
   useSignals();
 
   useSignalEffect(() => {
-    if (data.value.data[0]?.technologies !== null && !isEmptyObject(data.value.data[0]?.technologies)) {
-      technologies.value = data.value.data[0].technologies;
+    const indexPTT = data.value.findIndex((item) => item.test === "PTT");
+   
+    if (data.value[indexPTT]?.report[0].technologies !== null && !isEmptyObject(data.value[indexPTT]?.report[0].technologies)) {
+      technologies.value = data.value[indexPTT]?.report[0].technologies;
     } else {
       technologies.value = false;
     }
