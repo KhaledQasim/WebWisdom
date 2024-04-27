@@ -33,7 +33,7 @@ const ResultZAP = ({ MainTitle, MainContent, title, content, good, data }) => {
   return loading.value ? (
     <Loading />
   ) : technologies.value ? (
-    <div className="bg-base-200 container grid mx-auto mt-10">
+    <div className="bg-accent-content container grid mx-auto mt-10">
       <div className=" text-4xl text-center bg-primary/95 rounded-lg h-16">
         <div className="object-center mt-2">{MainTitle}</div>
       </div>

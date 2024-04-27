@@ -39,7 +39,9 @@ class PTT(BaseTest):
         print(stdout.decode())
         if stderr:
             print("Error in ptt scan:", stderr.decode())
-            raise HTTPException(status_code=400, detail="ptt scan failed")
+            return "Error in generating base scan!"
+        
+        
         return stdout.decode()
         
     
@@ -64,6 +66,9 @@ class PTT(BaseTest):
             return reportTest,scoreTest
         else:    
             report_text =  await self.get_vulnerability_report()
+            if "Error in generating base scan!" == report_text:
+                return "Error in generating base scan!",0
+            
             technologies = data_parse.parse_vulnerability_report_for_technologies(report_text)
             headers = data_parse.parse_vulnerability_report_for_headers(report_text)
             files = data_parse.parse_vulnerability_report_for_txt_files(report_text)

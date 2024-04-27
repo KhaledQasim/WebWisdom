@@ -16,6 +16,8 @@ const resultData = signal();
 const loading = signal(true);
 const idOfResult = signal();
 const ipKeys = signal();
+const isPttError = signal(true);
+
 
 export default function Result() {
   useSignals();
@@ -28,7 +30,7 @@ export default function Result() {
       .then((response) => {
         if (response.status === 200) {
           resultData.value = JSON.parse(response.data.result);
-          console.log("result data: ",resultData.value)
+          console.log("result data: ", resultData.value);
           handleDataVariables();
         }
       })
@@ -43,6 +45,15 @@ export default function Result() {
     const indexIpKeys = resultData.value.findIndex(
       (item) => item.test === "connection_and_records"
     );
+    const indexPTT = resultData.value.findIndex((item) => item.test === "PTT");
+    if (
+      String(resultData.value[indexPTT]?.report) ===
+      "Error in generating base scan!"
+    ) {
+      isPttError.value = false;
+    }
+
+
 
     ipKeys.value = Object.keys(resultData.value[indexIpKeys]?.report).filter(
       (key) => key.startsWith("IP_")
@@ -60,75 +71,83 @@ export default function Result() {
       ) : (
         <>
           <ResultSummary data={resultData} />
+          {isPttError.value ? (
+            <>
+              {/* Box for connection records */}
+              <ResultBoxWithIP
+                title={"Connection Records"}
+                content={"result box content "}
+                MainTitle={"Connection Records"}
+                MainContent={"Details about the target site"}
+                good={"neutral"}
+                data={resultData}
+                ipKeys={ipKeys}
+                subHeading={"sub"}
+              />
 
-          {/* Box for connection records */}
-          <ResultBoxWithIP
-            title={"Connection Records"}
-            content={"result box content "}
-            MainTitle={"Connection Records"}
-            MainContent={"Details about the target site"}
-            good={"neutral"}
-            data={resultData}
-            ipKeys={ipKeys}
-            subHeading={"sub"}
-          />
+              {/* Box for Technologies used on the website*/}
 
-          {/* Box for Technologies used on the website*/}
+              <ResultBoxTechnologies
+                // array of objects that contain the technologies used on the website, including name version and category
+                data={resultData}
+                content={"result box content "}
+                MainTitle={"Technologies"}
+                MainContent={"List of the technologies used on the website"}
+                good={"neutral"}
+              />
 
-          <ResultBoxTechnologies
-            // array of objects that contain the technologies used on the website, including name version and category
-            data={resultData}
-            content={"result box content "}
-            MainTitle={"Technologies"}
-            MainContent={"List of the technologies used on the website"}
-            good={"neutral"}
-          />
+              {/* Box for displaying headers information */}
+              <ResultBoxHeaders
+                data={resultData}
+                MainTitle={"HTTP Headers"}
+                MainContent={
+                  "Information about the headers of the webserver, headers are information passed between a web browser and a website when it's visited"
+                }
+                good={"neutral"}
+              />
 
-          {/* Box for displaying headers information */}
-          <ResultBoxHeaders
-            data={resultData}
-            MainTitle={"HTTP Headers"}
-            MainContent={
-              "Information about the headers of the webserver, headers are information passed between a web browser and a website when it's visited"
-            }
-            good={"neutral"}
-          />
+              {/* Box for displaying configuration files found on webserver*/}
+              <ResultBoxFiles
+                data={resultData}
+                MainTitle={"Files Found on WebServer"}
+                MainContent={
+                  "Information about some default files found on the webserver that can leak data about the inner workings of the webserver"
+                }
+                good={"neutral"}
+              />
 
-          {/* Box for displaying configuration files found on webserver*/}
-          <ResultBoxFiles
-            data={resultData}
-            MainTitle={"Files Found on WebServer"}
-            MainContent={
-              "Information about some default files found on the webserver that can leak data about the inner workings of the webserver"
-            }
-            good={"neutral"}
-          />
+              {/* Box for displaying miss configured or insecure cookies*/}
+              <ResultBoxCookies
+                data={resultData}
+                MainTitle={"Misconfigured or Insecure Cookies"}
+                MainContent={
+                  "Information about misconfigured or insecure Cookies found"
+                }
+                good={"neutral"}
+              />
 
-          {/* Box for displaying miss configured or insecure cookies*/}
-          <ResultBoxCookies
-            data={resultData}
-            MainTitle={"Misconfigured or Insecure Cookies"}
-            MainContent={
-              "Information about misconfigured or insecure Cookies found"
-            }
-            good={"neutral"}
-          />
+              {/* Box for displaying server side software vulnerabilities*/}
+              <ResultBoxServerVulnerabilities
+                data={resultData}
+                MainTitle={"Server Side Vulnerabilities"}
+                MainContent={
+                  "Finds Server Side Vulnerabilities by identifying the server software that is running and which version it is, the security tool then checks the CVE (Common Vulnerabilities and Exposures) databases for vulnerabilities associated with this specific software. This can be a major vulnerability depending on the risk severity of the CVE"
+                }
+                good={"neutral"}
+              />
+            </>
+          ) : (
+            <>
+              <div className="container mx-auto text-5xl text-primary">
+                Error in generating base report!
+              </div>
+            </>
+          )}
 
-          {/* Box for displaying server side software vulnerabilities*/}
-          <ResultBoxServerVulnerabilities
-            data={resultData}
-            MainTitle={"Server Side Vulnerabilities"}
-            MainContent={
-              "Finds Server Side Vulnerabilities by identifying the server software that is running and which version it is, the security tool then checks the CVE (Common Vulnerabilities and Exposures) databases for vulnerabilities associated with this specific software. This can be a major vulnerability depending on the risk severity of the CVE"
-            }
-            good={"neutral"}
-          />
           <ResultZAP
             data={resultData}
             MainTitle={"ZAP Penetration Test Content"}
-            MainContent={
-              "This is the html report of the ZAP penetration test"
-            }
+            MainContent={"This is the html report of the ZAP penetration test"}
             good={"neutral"}
           />
         </>
