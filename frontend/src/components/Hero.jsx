@@ -106,6 +106,9 @@ export default function Hero() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please only enter the hostname e.g: google.com youtube.com
               </p>
+              <p className="text-sm">
+                Disclaimer: Only scan domains you own or have permission to scan, WebWisdom will hold no legal responsibility for the actions of the user.
+              </p>
               {errorMessage.value ? (
                 <>
                   <div role="alert" className="alert alert-error">

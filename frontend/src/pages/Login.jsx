@@ -8,7 +8,11 @@ import { getUser } from "../lib/CheckUserAccount";
 const username = signal("");
 const password = signal("");
 const disabled = signal(false);
-const inputError = signal("")
+const inputError = signal("");
+const errorResponse = signal({
+  data: "data",
+  isTrue: false,
+});
 
 export default function Login() {
   useSignals();
@@ -27,20 +31,23 @@ export default function Login() {
         if (response.status === 200) {
           getUser();
           disabled.value = false;
-          inputError.value = ""
+          inputError.value = "";
           navigate("/");
         } else {
           disabled.value = false;
-        
         }
       })
       .catch(function error(error) {
         console.error(error);
-        inputError.value = ""
+        inputError.value = "";
         setTimeout(() => {
           disabled.value = false;
-          inputError.value = "input-error"
-        },2000);
+          inputError.value = "input-error";
+          errorResponse.value.isTrue = true;
+          errorResponse.value.data = error.response.data.detail
+        }, 2000);
+
+
       });
   }
 
@@ -60,12 +67,14 @@ export default function Login() {
         <input
           type="email"
           id="email"
-          className={"rounded-lg block w-full p-2.5 input input-bordered  input-primary "+ inputError}
+          className={
+            "rounded-lg block w-full p-2.5 input input-bordered  input-primary " +
+            inputError
+          }
           required
           //   value={username.value}
           onChange={(e) => (username.value = e.currentTarget.value)}
           disabled={disabled.value}
-          
         />
       </div>
       <div className="mb-5">
@@ -78,12 +87,22 @@ export default function Login() {
         <input
           type="password"
           id="password"
-          className={"rounded-lg block w-full p-2.5 input input-bordered input-primary  "+ inputError}
+          className={
+            "rounded-lg block w-full p-2.5 input input-bordered input-primary  " +
+            inputError
+          }
           required
           //   value={password.value}
           onChange={(e) => (password.value = e.currentTarget.value)}
           disabled={disabled.value}
         />
+        {errorResponse.value.isTrue ? (
+          <>
+            <span className="label-text-alt text-error">{errorResponse.value.data}</span>
+          </>
+        ) : (
+          <></>
+        )}
       </div>
 
       <div className="flex items-start mb-5">

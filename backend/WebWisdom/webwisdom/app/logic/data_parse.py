@@ -117,7 +117,6 @@ def parse_vulnerability_report_for_technologies(report_text: str):
 
 
 def parse_vulnerability_report_for_headers(report_text: str):
-    # Define the pattern to capture required fields
     pattern = r"Missing security header: (\S.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?Vulnerability Details:\s*(?:- Evidence \d+:\s*\n\s*- URL: (.*?)\n\s*- Evidence: (.*?)\n)?\s*- Description: (.*?)\n\s*- Recommendation: (.*?)\n"
     results = []
     matches = re.finditer(pattern, report_text, re.DOTALL)
@@ -157,7 +156,7 @@ def parse_vulnerability_report_for_headers(report_text: str):
         total_risk.append(risk_level.strip())
         data.append(result)
 
-    # Parsing the provided text
+    # Parsing provided text
     if not report_text.strip():
         raise HTTPException(status_code=400, detail="No text provided")
 
@@ -175,7 +174,7 @@ def parse_vulnerability_report_for_txt_files(report_text: str):
     total_risk = []
     results = []
 
-    # Search for Security.txt file details
+    # Security.txt file
     security_txt_match = re.search(
         security_txt_pattern, report_text, re.DOTALL)
     if security_txt_match:
@@ -188,7 +187,7 @@ def parse_vulnerability_report_for_txt_files(report_text: str):
         })
         total_risk.append(risk_level.strip())
 
-    # Search for Robots.txt file details
+    # Robots.txt file 
     robots_txt_match = re.search(robots_txt_pattern, report_text, re.DOTALL)
     if robots_txt_match:
         risk_level, description, recommendation = robots_txt_match.groups()
@@ -215,7 +214,7 @@ def parse_vulnerability_report_for_insecure_cookie(report_text: str):
         r"cookie\s*(.*?)\n\s*- Risk Level: (\d+ \(\w+\))\n.*?"
         r"Vulnerability Details:\s*(?:- Evidence \d+:\s*\n"
         r"\s*- URL: (.*?)\n"
-        r"\s*- Cookie Name: (.*?)\n"  # Capturing cookie name
+        r"\s*- Cookie Name: (.*?)\n"
         r"\s*- Evidence: (.*?)\n)?"
         r"\s*- Description: (.*?)\n"
         r"\s*- Recommendation: (.*?)\n"
@@ -255,21 +254,18 @@ def parse_server_side_vulnerabilities(report_text: str):
 
     vulnerabilities = []
 
-    # Start extracting from the specific section title
     vulnerability_section_start = re.search(
         r"Vulnerabilities found for server-side software\s*-\s*Risk Level: \d+ \((\w+)\)", report_text)
 
     if vulnerability_section_start:
         risk_level = vulnerability_section_start.group(1)
 
-        # Start capturing after "Vulnerability Details:"
         vulnerability_details_section = report_text[vulnerability_section_start.end(
         ):]
         vulnerability_details_start = vulnerability_details_section.find(
             "Vulnerability Details:")
         vulnerability_details_text = vulnerability_details_section[vulnerability_details_start:]
 
-        # Regular expression to capture each CVE detail
         cve_pattern = re.compile(
             r"- (CVE-\d+-\d+):\s*?\n\s*?-\s*?Risk Level:.*?\n\s*?-\s*?CVSS: (\d+\.\d+)\n\s*?-\s*?Summary: (.*?)\n\s*?-\s*?Affected software: (.+?)(?=\n\s*?-|$)", re.DOTALL)
 
