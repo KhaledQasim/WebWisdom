@@ -27,7 +27,7 @@ jobs:
 - parameters:
     reportDescription: ''
     reportDir: /zap/wrk/
-    reportFile: testreport2024-05-03_19-24-06.html
+    reportFile: testreport2024-05-06_01-55-21.html
     reportTitle: ZAP Scanning Report
     template: traditional-html
   type: report

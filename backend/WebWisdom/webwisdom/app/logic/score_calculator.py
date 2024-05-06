@@ -7,7 +7,7 @@ def find_unique_list(data, unique_key):
 
     Args:
         data (list): list of any size and any child lists and dictionaries
-        unique_key (string): the unique name of a list you want to retrieve from the data
+        unique_key (string): the unique name of a list or dictionary you want to retrieve from the data
 
     Returns:
         list[int]: list of integers

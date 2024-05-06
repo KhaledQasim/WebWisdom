@@ -1,5 +1,5 @@
-# tests/example_test.py
 
+# uses a penetration tool provided by https://pentest-tools.com/
 from fastapi import HTTPException
 from ..base_test import BaseTest
 import subprocess
@@ -8,6 +8,10 @@ import asyncio
 
 
 class PTT(BaseTest):
+    """Penetration tool provided by https://pentest-tools.com/
+
+
+    """
     def __init__(self,ssl,url):
         self.ssl = ssl
         self.url = url
