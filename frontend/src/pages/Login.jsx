@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { axiosLoginForm } from "../api/axios";
 import { signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
-import { getUser } from "../lib/CheckUserAccount";
+import { getUser } from "../helpers/CheckUserAccount";
 
 const username = signal("");
 const password = signal("");

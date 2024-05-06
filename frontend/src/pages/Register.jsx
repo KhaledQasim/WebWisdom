@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals-react";
 import { axiosRegister } from "../api/axios";
 import { useNavigate } from "react-router-dom";
-import { getUser } from "../lib/CheckUserAccount";
+import { getUser } from "../helpers/CheckUserAccount";
 import { useSignals } from "@preact/signals-react/runtime";
 
 const disabled = signal(false);

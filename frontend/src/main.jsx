@@ -10,7 +10,7 @@ import Result from "./pages/Result.jsx";
 import Results from "./pages/Results.jsx";
 
 import ErrorPage from "./pages/ErrorPage.jsx";
-import { userSignal } from "./lib/CheckUserAccount.jsx";
+import { userSignal } from "./helpers/CheckUserAccount.jsx";
 
 
 ReactDOM.createRoot(document.getElementById("root")).render(

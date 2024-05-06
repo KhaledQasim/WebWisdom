@@ -1,7 +1,7 @@
 import { useSignals } from "@preact/signals-react/runtime";
 import Logo from "../assets/oig-clean.png";
 import { Link, useNavigate } from "react-router-dom";
-import { Logout } from "../lib/Logout";
+import { Logout } from "../helpers/Logout";
 
 /* eslint-disable react/prop-types */
 export default function Navbar({ user }) {
