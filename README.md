@@ -5,15 +5,23 @@ Disclaimer: Only use this tool on websites and domains that you own
 # Installation and Deployment
 ## Requirements
 Linux Operating System
+
 Poetry
+
 NPM
+
 Node
+
 Python 3.10.x
+
 Docker 
+
 ```bash
 docker pull ghcr.io/zaproxy/zaproxy:stable
 ```
+
 Nmap
+
 ```bash
 pip install ptt
 ```
