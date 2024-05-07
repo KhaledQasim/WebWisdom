@@ -1,4 +1,4 @@
-# tests/example_test.py
+# Uses code from the ZAP foundation, credits at: https://github.com/marketplace/actions/zap-baseline-scan
 
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
