@@ -2,6 +2,26 @@
 A full-stack Fast-API and React tool for automated penetration testing of publicly available websites.
 Disclaimer: Only use this tool on websites and domains that you own
 
+# IMPORTANT
+When registering a new user in the React frontend, please follow these password rules:
+
+Must be longer than 8 characters and less than 25
+At least 1 uppercase letter
+At least 1 lowercase letter
+At least 1 number
+At least 1 special character from this list: !£$%^&*_@~#?
+
+Example of a valid password:  123Rock123???
+
+Must use a valid email syntax
+Email can be fake as long as it follows the correct syntax
+For Example: user@gmail.com
+
+## Allowed Domains to test this tool on
+
+testphp.vulnweb.com
+
+
 # Installation and Deployment
 ## Requirements
 Linux Operating System
@@ -66,6 +86,7 @@ If port 8000 is already being used then you must kill the program using it so un
 
 
 ### React Frontend
+In a new terminal
 Navigate into this directory `WebWisdom/frontend`
 Run this command to install the frontend react dependencies 
 ```bash
@@ -79,16 +100,26 @@ Then build the frontend
 ```
 npm run build
 ```
-Then preview the build and it all should work now
+Then preview the build
 ```
 npm run preview
 ```
-
+Click the "Register" button at the top right of the Navbar and follow the rules mentioned at the start of this file for creating a new user with the correct password and email.
 
 # Testing
-Install Pytest
+Install Pytest using pip
 Navigate to `/WebWisdom/backend/WebWisdom` directory
-Open a terminal in the directory and run the command `pytest -v -s`
+Open a terminal in the directory and run these commands
+
+```
+poetry shell
+```
+
+then
+
+```
+pytest -v -s
+```
 
 
 
