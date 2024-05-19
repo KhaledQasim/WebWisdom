@@ -2,6 +2,31 @@
 A full-stack Fast-API and React tool for automated penetration testing of publicly available websites.
 Disclaimer: Only use this tool on websites and domains that you own
 
+## Example of a penetration test
+
+### Past Results of the current logged-in user
+
+![Past Results](pictures/Results.png)
+
+### Penetration Test on a vulnerable domain with purposeful exploits (http://testphp.vulnweb.com/)
+
+![Base Test](pictures/BaseTest.png)
+
+This domain is susceptible to exploits and the low score of the base test reflects that information  
+
+### The base test can display the existing technologies running on the domain's server
+
+![Technologies](pictures/ServerTechnologies.png)
+
+### The vulnerable software running on the server, we can use this information to learn more about the server's exploits and how to utilize them
+
+![Vulnerable Software](pictures/VulnerableSoftware.png)
+
+### Additional penetration tests will be displayed (if their respective backend and frontend code is added)
+
+![ZAP](pictures/ZAP.png)
+
+
 # IMPORTANT
 When registering a new user in the React frontend, please follow these password rules:
 
